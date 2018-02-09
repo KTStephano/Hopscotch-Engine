@@ -86,6 +86,9 @@ public class Window implements MessageHandler, PulseEntity {
             _canvas.setWidth(_width);
             _canvas.setHeight(_height);
         }
+        else if (message.getMessageName().equals("FULLSCREEN_WAS_CHANGED")) {
+            _stage.setFullScreen(_isFullscreen);
+        }
     }
 
     @Override
