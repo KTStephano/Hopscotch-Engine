@@ -14,9 +14,36 @@ public class Engine extends Application implements PulseEntity {
     private HashSet<PulseEntity> _pulseEntities = new HashSet<>();
     private ApplicationEntryPoint _application = new ApplicationEntryPoint();
     private MessagePump _messageSystem = new MessagePump();
+    private ConsoleVariables _cvarSystem = new ConsoleVariables();
+    private Window _window = new Window();
     private int _maxFrameRate;
     private long _lastFrameTimeMS;
     private boolean _isRunning = false;
+
+    public Window getWindow()
+    {
+        return _window;
+    }
+
+    /**
+     * Warning! Do not call the MessagePump's dispatch method!
+     *
+     * This allows other systems to pass messages/register messages/
+     * signal interest in message.
+     * @return MessagePump for modification
+     */
+    public MessagePump getMessagePump()
+    {
+        return _messageSystem;
+    }
+
+    /**
+     * Returns the console variable listing for viewing/modification
+     */
+    public ConsoleVariables getConsoleVariables()
+    {
+        return _cvarSystem;
+    }
 
     /**
      * Registers a pulse entity, which is an entity which must be updated once
@@ -37,7 +64,7 @@ public class Engine extends Application implements PulseEntity {
         {
             @Override
             public void handle(long now) {
-                if (!_isRunning) return;
+                if (!_isRunning) System.exit(0); // Need to shut the system down
                 long currentTimeMS = System.currentTimeMillis();
                 double deltaSeconds = (currentTimeMS - _lastFrameTimeMS) / 1000.0;
                 // Don't pulse faster than the maximum frame rate
@@ -53,19 +80,24 @@ public class Engine extends Application implements PulseEntity {
      */
     @Override
     public void pulse(double deltaSeconds) {
+        // Make sure we keep the messages flowing
+        _messageSystem.dispatchMessages();
         for (PulseEntity entity : _pulseEntities)
         {
             entity.pulse(deltaSeconds);
         }
     }
 
-    public void shutdown1()
+    public void shutdown()
     {
         _isRunning = false;
+        _application.shutdown();
     }
 
     private void _init(Stage stage)
     {
+        _cvarSystem.registerVariable(new ConsoleVariable("MAX_FRAMERATE", "60"));
+        Singleton.engine = this; // Make sure this gets set
         _isRunning = true;
         _lastFrameTimeMS = System.currentTimeMillis();
         _application.init();

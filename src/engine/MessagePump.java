@@ -18,6 +18,21 @@ public class MessagePump {
     private final LinkedList<Message> _messageDispatchBuffer = new LinkedList<>();
 
     /**
+     * Tells the message pump that you are interested in receiving event
+     * notifications for the given message
+     * @param message message to receive event notifications for
+     * @param handler callback
+     */
+    public void signalInterest(String message, MessageHandler handler)
+    {
+        if (!contains(message))
+        {
+            throw new IllegalArgumentException("Non-registered message passed into MessagePump.signalInterest");
+        }
+        _registeredHandlers.get(getRegisteredMessage(message)).add(handler);
+    }
+
+    /**
      * Tells the message pump that the given message should be cached and it
      * should expect messages of its type fo be written in the future.
      *
@@ -40,6 +55,14 @@ public class MessagePump {
     {
         _registeredMessages.remove(message.getMessageName());
         _registeredHandlers.remove(message);
+    }
+
+    /**
+     * Converts a String to a registered Message object
+     */
+    public Message getRegisteredMessage(String message)
+    {
+        return _registeredMessages.get(message);
     }
 
     /**
@@ -95,6 +118,16 @@ public class MessagePump {
             throw new IllegalArgumentException("Non-registered message passed into MessagePump");
         }
         _messageDispatchBuffer.add(message);
+    }
+
+    /**
+     * Allows you to send a message without having a hard reference to the Message object
+     * you want to send. Instead the message pump will look it up for you.
+     * @param message message to send
+     */
+    public void sendMessage(String message)
+    {
+        sendMessage(getRegisteredMessage(message));
     }
 
     /**
