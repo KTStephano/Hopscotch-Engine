@@ -7,15 +7,17 @@ import javafx.application.Platform;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.stage.Stage;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.HashSet;
 import java.util.LinkedList;
 
 public class Engine extends Application implements PulseEntity {
-    private HashSet<PulseEntity> _pulseEntities = new HashSet<>();
-    private ApplicationEntryPoint _application = new ApplicationEntryPoint();
-    private MessagePump _messageSystem = new MessagePump();
-    private ConsoleVariables _cvarSystem = new ConsoleVariables();
-    private Window _window = new Window();
+    private HashSet<PulseEntity> _pulseEntities;
+    private ApplicationEntryPoint _application;
+    private MessagePump _messageSystem;
+    private ConsoleVariables _cvarSystem;
+    private Window _window;
     private int _maxFrameRate;
     private long _lastFrameTimeMS;
     private boolean _isRunning = false;
@@ -96,11 +98,53 @@ public class Engine extends Application implements PulseEntity {
 
     private void _init(Stage stage)
     {
+        Singleton.engine = this; // Make sure this gets set before everything else
+        _messageSystem = new MessagePump();
+        _pulseEntities = new HashSet<>();
+        _cvarSystem = new ConsoleVariables();
+        _window = new Window();
+        _application = new ApplicationEntryPoint();
         _cvarSystem.registerVariable(new ConsoleVariable("MAX_FRAMERATE", "60"));
-        Singleton.engine = this; // Make sure this gets set
         _isRunning = true;
         _lastFrameTimeMS = System.currentTimeMillis();
+        _window.init(stage);
         _application.init();
+    }
+
+    private void loadEngineConfig(String engineCfgFile)
+    {
+        try
+        {
+            FileReader fileReader = new FileReader(engineCfgFile);
+            BufferedReader reader = new BufferedReader(fileReader);
+            String line;
+            while ((line = reader.readLine()) != null)
+            {
+                line = line.replaceAll(" ", "");
+                System.out.println(line);
+                String variable = "";
+                String value = "";
+                boolean isReadingValue = false;
+                for (int i = 1; i < line.length(); ++i)
+                {
+                    char c = line.charAt(i);
+                    if (c == '=')
+                    {
+                        isReadingValue = true;
+                        continue;
+                    }
+                    if (isReadingValue) value += c;
+                    else variable += c;
+                }
+                if (_cvarSystem.contains(variable)) _cvarSystem.find(variable).setValue(value);
+                else _cvarSystem.registerVariable(new ConsoleVariable(variable, value));
+            }
+        }
+        catch (Exception e)
+        {
+            System.out.println("Unable to load " + engineCfgFile);
+            System.exit(-1);
+        }
     }
 
     public static void main(String[] args) {

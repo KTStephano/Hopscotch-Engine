@@ -11,14 +11,20 @@ import java.util.HashMap;
  * @author Justin Hall
  */
 public class ConsoleVariables {
-    private HashMap<String, ConsoleVariable> _cvars;
+    private HashMap<String, ConsoleVariable> _cvars = new HashMap<>();
 
     /**
      * Registers a console variable with the cvar system
      */
     public void registerVariable(ConsoleVariable cvar)
     {
-        _cvars.put(cvar.getcvarName(), cvar);
+        // If it already exists then do nothing except potentially
+        // override the default value if it is different
+        if (contains(cvar.getcvarName()))
+        {
+            find(cvar.getcvarName()).setDefault(cvar.getcvarDefault());
+        }
+        else _cvars.put(cvar.getcvarName(), cvar);
     }
 
     public void unregisterVariable(String cvar)

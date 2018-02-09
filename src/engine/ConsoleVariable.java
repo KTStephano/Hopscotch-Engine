@@ -21,14 +21,14 @@ public class ConsoleVariable {
         Singleton.engine.getMessagePump().registerMessage(new Message(_cvarName + "_WAS_CHANGED"));
         _defaultValue = defaultValue;
         _cvarValue = defaultValue;
-        setValue(_cvarValue);
+        setValueNoMessageDispatch(_cvarValue);
     }
 
     ConsoleVariable(String name, String defaultValue, String value)
     {
         _cvarName = name;
         _defaultValue = defaultValue;
-        setValue(value);
+        setValueNoMessageDispatch(value);
     }
 
     /**
@@ -55,6 +55,11 @@ public class ConsoleVariable {
         return _cvarValue;
     }
 
+    public String getcvarDefault()
+    {
+        return _defaultValue;
+    }
+
     /**
      * Gets cvar value as int (Ex: 127)
      */
@@ -79,7 +84,15 @@ public class ConsoleVariable {
     {
         setValueNoMessageDispatch(value);
         // Notify anyone who is interested that this variable was changed
-        Singleton.engine.getMessagePump().sendMessage(_cvarName + "WAS_CHANGED");
+        Singleton.engine.getMessagePump().sendMessage(_cvarName + "_WAS_CHANGED");
+    }
+
+    /**
+     * This determines what the cvar resets to if reset() is called
+     */
+    public void setDefault(String defaultValue)
+    {
+        _defaultValue = defaultValue;
     }
 
     private void setValueNoMessageDispatch(String value)

@@ -13,7 +13,7 @@ import javafx.stage.Stage;
  *
  * @author Justin Hall
  */
-public class Window implements MessageHandler {
+public class Window implements MessageHandler, PulseEntity {
     private Stage _stage;
     private Canvas _canvas;
     private Scene _jfxScene;
@@ -45,6 +45,10 @@ public class Window implements MessageHandler {
 
     public GraphicsContext init(Stage stage)
     {
+        Singleton.engine.registerPulseEntity(this); // We want to update frequently to check for resizes
+        Singleton.engine.getConsoleVariables().registerVariable(new ConsoleVariable("FULLSCREEN", "false"));
+        Singleton.engine.getConsoleVariables().registerVariable(new ConsoleVariable("SCR_WIDTH", "512"));
+        Singleton.engine.getConsoleVariables().registerVariable(new ConsoleVariable("SCR_HEIGHT", "256"));
         ConsoleVariables cvars = Singleton.engine.getConsoleVariables();
         _isFullscreen = Boolean.parseBoolean(cvars.find("FULLSCREEN").getcvarValue());
         _width = Integer.parseInt(cvars.find("SCR_WIDTH").getcvarValue());
@@ -59,7 +63,7 @@ public class Window implements MessageHandler {
             _width = (int)screenSize.getWidth();
             _height = (int)screenSize.getHeight();
         }
-        stage.setResizable(false);
+        //stage.setResizable(false);
         stage.setTitle(_title);
         _stage = stage;
         Group root = new Group();
@@ -81,6 +85,15 @@ public class Window implements MessageHandler {
             _height = (int) _jfxScene.getHeight();
             _canvas.setWidth(_width);
             _canvas.setHeight(_height);
+        }
+    }
+
+    @Override
+    public void pulse(double deltaSeconds) {
+        if (_width != (int)_jfxScene.getWidth() || _height != (int)_jfxScene.getHeight())
+        {
+            Singleton.engine.getConsoleVariables().find("SCR_WIDTH").setValue(Integer.toString((int)_jfxScene.getWidth()));
+            Singleton.engine.getConsoleVariables().find("SCR_HEIGHT").setValue(Integer.toString((int)_jfxScene.getHeight()));
         }
     }
 }
