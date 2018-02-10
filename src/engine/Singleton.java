@@ -4,6 +4,8 @@ package engine;
  * All absolutely critical global variables, such as the engine
  */
 public class Singleton {
+    // If you are not the Engine class, don't set this variable to be any other Engine object
+    // or everything will probably break - the engine creates itself and sets this at startup
     public static Engine engine;
 
     /**

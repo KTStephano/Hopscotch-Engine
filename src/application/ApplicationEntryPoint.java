@@ -12,27 +12,39 @@ import java.util.LinkedList;
  * with the engine
  */
 public class ApplicationEntryPoint {
-    UIButton button = new UIButton("hello", 50, 50);
-    LinkedList<Integer> list = new LinkedList<>();
-    boolean t = false;
     /**
      * Initializes the application
      */
     public void init()
     {
-        //button = new UIButton("hello", 50, 50);
-        button.setWidthHeight(100,100);
-        //button.addToWindow();
-        Singleton.engine.getMessagePump().registerMessage(new Message("test"));
-        Singleton.engine.getMessagePump().signalInterest("test", new MessageHandler() {
+        // example code
+        UIButton button = new UIButton("enter", 135, 100);
+        button.setWidthHeight(100, 25);
+        button.addToWindow();
+        button.setOnButtonPressed(new Callback() {
             @Override
-            public void handleMessage(Message message) {
-                ((LinkedList<Integer>)message.getMessageData()).add(100);
-                System.out.println("SIZE NOW = " + list.size());
+            public void handleCallback() {
+                System.out.println("BUTTON PRESSED");
             }
         });
-        System.out.println("SIZE = " + list.size());
-        Singleton.engine.getMessagePump().sendMessage(new Message("test", list));
+
+        UILabel label = new UILabel("name: ", 10, 100);
+        label.setWidthHeight(100, 25);
+        label.addToWindow();
+
+        UITextField field = new UITextField("", 50, 100);
+        field.setWidthHeight(75, 25);
+        field.addToWindow();
+
+        // Uncomment if you want to cry
+        /*
+        Singleton.engine.getMessagePump().sendMessage(new Message(Singleton.ADD_PULSE_ENTITY, new PulseEntity() {
+            @Override
+            public void pulse(double deltaSeconds) {
+                System.out.println("cry");
+            }
+        }));
+        */
     }
 
     /**

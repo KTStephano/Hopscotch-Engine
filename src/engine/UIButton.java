@@ -1,5 +1,6 @@
 package engine;
 
+import com.sun.xml.internal.ws.resources.HandlerMessages;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
@@ -10,22 +11,27 @@ import javafx.scene.input.MouseEvent;
 /**
  * Generic button class which can be added and removed from the window
  */
-public class UIButton {
+public class UIButton implements UIElement {
     private int _x, _y;
     private Button _button;
 
     /**
      * Creates a new button
      * @param text text to be displayed on the button
-     * @param x x location on the screen
-     * @param y y location on the screen
+     * @param xlocation x location on the screen
+     * @param ylocation y location on the screen
      */
-    public UIButton(String text, int x, int y)
+    public UIButton(String text, int xlocation, int ylocation)
     {
         _button = new Button();
         _button.setVisible(true);
-        setXY(x, y);
+        setXY(xlocation, ylocation);
         setText(text);
+    }
+
+    public void setVisible(boolean value)
+    {
+        _button.setVisible(true);
     }
 
     public String  toString()

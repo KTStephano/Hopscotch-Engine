@@ -111,26 +111,13 @@ public class Window implements MessageHandler, PulseEntity {
         {
             case Singleton.ADD_UI_ELEMENT:
             {
-                System.out.println(message.getMessageName());
-                Button button = new Button("Test 2");//(Button)message.getMessageData();
-                button.setVisible(true);
-                button.setLayoutY(50);
-                button.setLayoutY(50);
-                button.setPrefHeight(100);
-                button.setPrefWidth(100);
-                Button b2 = (javafx.scene.control.Button)message.getMessageData();
-                b2.setLayoutY(0);
-                b2.setLayoutX(0);
-                b2.setPrefHeight(100);
-                b2.setPrefWidth(100);
-                b2.setVisible(true);
-                _stack.getChildren().addAll(b2, button);
-                System.out.println(message.getMessageData().getClass().getName());
-                //_stack.getChildren().add((Node)message.getMessageData());
+                _stack.getChildren().add((Node)message.getMessageData());
+                break;
             }
             case Singleton.REMOVE_UI_ELEMENT:
             {
                 _stack.getChildren().remove((Node)message.getMessageData());
+                break;
             }
         }
     }

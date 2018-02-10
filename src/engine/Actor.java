@@ -1,10 +1,17 @@
 package engine;
 
+import engine.math.Vector3;
+
 /**
- * An actor represents any object that can be added to
- * the game/simulation environment. It opens a very simple
- * interface
+ * Under construction
+ *
+ * This will represent the basic element of the simulation and will be rendered
+ * on the screen in almost all cases.
  */
-public abstract class Actor implements MessageHandler {
+public abstract class Actor {
+    private Vector3 _location = new Vector3(0, 0, 0);
+    private Vector3 _speed = new Vector3(0, 0, 0);
+    private Vector3 _acceleration = new Vector3(0, 0, 0);
+
 
 }

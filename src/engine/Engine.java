@@ -17,7 +17,7 @@ public class Engine extends Application implements PulseEntity, MessageHandler {
     private ApplicationEntryPoint _application;
     private MessagePump _messageSystem;
     private ConsoleVariables _cvarSystem;
-    public Window _window;
+    private Window _window;
     private int _maxFrameRate;
     private long _lastFrameTimeMS;
     private boolean _isRunning = false;
@@ -62,8 +62,6 @@ public class Engine extends Application implements PulseEntity, MessageHandler {
         }.start();
     }
 
-    boolean t = true;
-
     /**
      * Represents the main game/simulation loop
      */
@@ -75,20 +73,18 @@ public class Engine extends Application implements PulseEntity, MessageHandler {
         {
             entity.pulse(deltaSeconds);
         }
-        if (t) {
-            UIButton button = new UIButton("engine", 0, 0);
-            button.setWidthHeight(50, 50);
-            button.addToWindow();
-            t = false;
-        }
     }
 
     @Override
     public void handleMessage(Message message) {
         switch(message.getMessageName())
         {
-            case Singleton.ADD_PULSE_ENTITY: _registerPulseEntity((PulseEntity)message.getMessageData());
-            case Singleton.REMOVE_PULSE_ENTITY: _deregisterPulseEntity((PulseEntity)message.getMessageData());
+            case Singleton.ADD_PULSE_ENTITY:
+                _registerPulseEntity((PulseEntity)message.getMessageData());
+                break;
+            case Singleton.REMOVE_PULSE_ENTITY:
+                _deregisterPulseEntity((PulseEntity)message.getMessageData());
+                break;
         }
     }
 
@@ -110,6 +106,8 @@ public class Engine extends Application implements PulseEntity, MessageHandler {
         _messageSystem.registerMessage(new Message(Singleton.SET_FULLSCREEN));
         _messageSystem.registerMessage(new Message(Singleton.SET_SCR_HEIGHT));
         _messageSystem.registerMessage(new Message(Singleton.SET_SCR_WIDTH));
+        _messageSystem.signalInterest(Singleton.ADD_PULSE_ENTITY, this);
+        _messageSystem.signalInterest(Singleton.REMOVE_PULSE_ENTITY, this);
         _pulseEntities = new HashSet<>();
         _cvarSystem = new ConsoleVariables();
         _window = new Window();

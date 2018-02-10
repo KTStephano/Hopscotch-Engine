@@ -10,16 +10,16 @@ public class Vector3 {
     private double _y = 0.0;
     private double _z = 0.0;
 
-    Vector3()
+    public Vector3()
     {
     }
 
-    Vector3(double val)
+    public Vector3(double val)
     {
         setXYZ(val, val, val);
     }
 
-    Vector3(double x, double y, double z)
+    public Vector3(double x, double y, double z)
     {
         setXYZ(x, y, z);
     }
@@ -28,7 +28,7 @@ public class Vector3 {
      * Copy constructor
      * @param other vector to copy from
      */
-    Vector3(Vector3 other)
+    public Vector3(Vector3 other)
     {
         setXYZ(other._x, other._y, other._z);
     }

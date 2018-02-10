@@ -9,7 +9,7 @@ public class Matrix3 {
      */
     private final double _mat[] = new double[9];
 
-    Matrix3()
+    public Matrix3()
     {
     }
 
