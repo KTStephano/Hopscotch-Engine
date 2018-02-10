@@ -1,6 +1,8 @@
 package engine;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * These are essentially global variables accessible to the
@@ -12,6 +14,25 @@ import java.util.HashMap;
  */
 public class ConsoleVariables {
     private HashMap<String, ConsoleVariable> _cvars = new HashMap<>();
+
+    public LinkedList<ConsoleVariable> getAllConsoleVariables()
+    {
+        LinkedList<ConsoleVariable> cvars = new LinkedList<>();
+        for (Map.Entry<String, ConsoleVariable> entry : _cvars.entrySet())
+        {
+            cvars.add(entry.getValue());
+        }
+        return cvars;
+    }
+
+    public void printAllConsoleVariables()
+    {
+        System.out.println("---Console Variable Listing---");
+        for (Map.Entry<String, ConsoleVariable> entry : _cvars.entrySet())
+        {
+            System.out.println(entry.getValue());
+        }
+    }
 
     /**
      * Registers a console variable with the cvar system

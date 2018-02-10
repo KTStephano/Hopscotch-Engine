@@ -12,20 +12,15 @@ import java.io.FileReader;
 import java.util.HashSet;
 import java.util.LinkedList;
 
-public class Engine extends Application implements PulseEntity {
+public class Engine extends Application implements PulseEntity, MessageHandler {
     private HashSet<PulseEntity> _pulseEntities;
     private ApplicationEntryPoint _application;
     private MessagePump _messageSystem;
     private ConsoleVariables _cvarSystem;
-    private Window _window;
+    public Window _window;
     private int _maxFrameRate;
     private long _lastFrameTimeMS;
     private boolean _isRunning = false;
-
-    public Window getWindow()
-    {
-        return _window;
-    }
 
     /**
      * Warning! Do not call the MessagePump's dispatch method!
@@ -45,16 +40,6 @@ public class Engine extends Application implements PulseEntity {
     public ConsoleVariables getConsoleVariables()
     {
         return _cvarSystem;
-    }
-
-    /**
-     * Registers a pulse entity, which is an entity which must be updated once
-     * per engine/simulation frame.
-     * @param entity entity to update every frame
-     */
-    public void registerPulseEntity(PulseEntity entity)
-    {
-        _pulseEntities.add(entity);
     }
 
     @Override
@@ -90,6 +75,15 @@ public class Engine extends Application implements PulseEntity {
         }
     }
 
+    @Override
+    public void handleMessage(Message message) {
+        switch(message.getMessageName())
+        {
+            case Singleton.ADD_PULSE_ENTITY: _registerPulseEntity((PulseEntity)message.getMessageData());
+            case Singleton.REMOVE_PULSE_ENTITY: _deregisterPulseEntity((PulseEntity)message.getMessageData());
+        }
+    }
+
     public void shutdown()
     {
         _isRunning = false;
@@ -100,6 +94,14 @@ public class Engine extends Application implements PulseEntity {
     {
         Singleton.engine = this; // Make sure this gets set before everything else
         _messageSystem = new MessagePump();
+        // Make sure we register all of the message types
+        _messageSystem.registerMessage(new Message(Singleton.ADD_PULSE_ENTITY));
+        _messageSystem.registerMessage(new Message(Singleton.REMOVE_PULSE_ENTITY));
+        _messageSystem.registerMessage(new Message(Singleton.ADD_UI_ELEMENT));
+        _messageSystem.registerMessage(new Message(Singleton.REMOVE_UI_ELEMENT));
+        _messageSystem.registerMessage(new Message(Singleton.SET_FULLSCREEN));
+        _messageSystem.registerMessage(new Message(Singleton.SET_SCR_HEIGHT));
+        _messageSystem.registerMessage(new Message(Singleton.SET_SCR_WIDTH));
         _pulseEntities = new HashSet<>();
         _cvarSystem = new ConsoleVariables();
         _window = new Window();
@@ -111,7 +113,22 @@ public class Engine extends Application implements PulseEntity {
         _application.init();
     }
 
-    private void loadEngineConfig(String engineCfgFile)
+    /**
+     * Registers a pulse entity, which is an entity which must be updated once
+     * per engine/simulation frame.
+     * @param entity entity to update every frame
+     */
+    private void _registerPulseEntity(PulseEntity entity)
+    {
+        _pulseEntities.add(entity);
+    }
+
+    private void _deregisterPulseEntity(PulseEntity entity)
+    {
+        _pulseEntities.remove(entity);
+    }
+
+    private void _loadEngineConfig(String engineCfgFile)
     {
         try
         {

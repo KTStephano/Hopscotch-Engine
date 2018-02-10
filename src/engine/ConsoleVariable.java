@@ -15,7 +15,7 @@ public class ConsoleVariable {
     private int _cvarIntVal; // Defaults to -1 if _cvarValue cannot be casted
     private double _cvarFloatVal; // Defaults to -1.0 if _cvarValue cannot be casted
 
-    ConsoleVariable(String name, String defaultValue)
+    public ConsoleVariable(String name, String defaultValue)
     {
         _cvarName = name;
         Singleton.engine.getMessagePump().registerMessage(new Message(_cvarName + "_WAS_CHANGED"));
@@ -24,7 +24,7 @@ public class ConsoleVariable {
         setValueNoMessageDispatch(_cvarValue);
     }
 
-    ConsoleVariable(String name, String defaultValue, String value)
+    public ConsoleVariable(String name, String defaultValue, String value)
     {
         _cvarName = name;
         _defaultValue = defaultValue;

@@ -1,5 +1,7 @@
 package application;
 
+import engine.*;
+
 /**
  * This is the only part of the application that the engine
  * directly and explicitly knows about. It only guarantees
@@ -13,6 +15,9 @@ public class ApplicationEntryPoint {
      */
     public void init()
     {
+        UIButton button = new UIButton("hello", 50, 50);
+        button.setWidthHeight(100,100);
+        button.addToWindow();
     }
 
     /**

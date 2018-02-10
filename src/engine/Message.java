@@ -13,13 +13,36 @@ public class Message {
     private String _msgName;
     private Object _msgData = null;
 
-    Message(String msgName)
+    public Message(String msgName)
     {
         _msgName = msgName;
     }
 
-    Message(String msgName, Object msgData)
+    public Message(String msgName, Object msgData)
     {
+        _msgName = msgName;
+        _msgData = msgData;
+    }
+
+    /**
+     * Basic copy constructor - copies the values of message
+     * @param message existing Message to copy from
+     */
+    public Message(Message message)
+    {
+        _msgName = message._msgName;
+        _msgData = message._msgData;
+    }
+
+    /**
+     * Advanced copy constructor - pulls the name name from message and uses
+     * the given "msgData" as the message's data
+     * @param message existing Message to pull the name from
+     * @param msgData object to set as the Message data
+     */
+    public Message (Message message, Object msgData)
+    {
+        _msgName = message.getMessageName();
         _msgData = msgData;
     }
 

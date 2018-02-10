@@ -43,6 +43,7 @@ public class MessagePump {
         // Only add it if it has not been added yet
         if (!_registeredMessages.containsKey(message.getMessageName()))
         {
+            System.out.println("Registering " + message.getMessageName());
             _registeredMessages.put(message.getMessageName(), message);
             _registeredHandlers.put(message, new LinkedList<>());
         }
@@ -113,6 +114,7 @@ public class MessagePump {
      */
     public void sendMessage(Message message)
     {
+        System.out.println("Trying to send message: " + message.getMessageName());
         if (!_registeredMessages.containsKey(message.getMessageName()))
         {
             throw new IllegalArgumentException("Non-registered message passed into MessagePump");

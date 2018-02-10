@@ -2,9 +2,15 @@ package engine;
 
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
@@ -15,6 +21,7 @@ import javafx.stage.Stage;
  */
 public class Window implements MessageHandler, PulseEntity {
     private Stage _stage;
+    private StackPane _stack;
     private Canvas _canvas;
     private Scene _jfxScene;
     private GraphicsContext _gc;
@@ -45,7 +52,8 @@ public class Window implements MessageHandler, PulseEntity {
 
     public GraphicsContext init(Stage stage)
     {
-        Singleton.engine.registerPulseEntity(this); // We want to update frequently to check for resizes
+        // We want to update frequently to check for resizes, so tell the system to add us as a pulse entity
+        Singleton.engine.getMessagePump().sendMessage(new Message(Singleton.ADD_PULSE_ENTITY, this));
         Singleton.engine.getConsoleVariables().registerVariable(new ConsoleVariable("FULLSCREEN", "false"));
         Singleton.engine.getConsoleVariables().registerVariable(new ConsoleVariable("SCR_WIDTH", "512"));
         Singleton.engine.getConsoleVariables().registerVariable(new ConsoleVariable("SCR_HEIGHT", "256"));
@@ -56,6 +64,11 @@ public class Window implements MessageHandler, PulseEntity {
         Singleton.engine.getMessagePump().signalInterest("SCR_WIDTH_WAS_CHANGED", this);
         Singleton.engine.getMessagePump().signalInterest("SCR_HEIGHT_WAS_CHANGED", this);
         Singleton.engine.getMessagePump().signalInterest("FULLSCREEN_WAS_CHANGED", this);
+        Singleton.engine.getMessagePump().signalInterest(Singleton.SET_SCR_WIDTH, this);
+        Singleton.engine.getMessagePump().signalInterest(Singleton.SET_SCR_HEIGHT, this);
+        Singleton.engine.getMessagePump().signalInterest(Singleton.SET_FULLSCREEN, this);
+        Singleton.engine.getMessagePump().signalInterest(Singleton.ADD_UI_ELEMENT, this);
+        Singleton.engine.getMessagePump().signalInterest(Singleton.REMOVE_UI_ELEMENT, this);
         stage.setFullScreen(_isFullscreen);
         if (_isFullscreen)
         {
@@ -68,7 +81,10 @@ public class Window implements MessageHandler, PulseEntity {
         _stage = stage;
         Group root = new Group();
         _canvas = new Canvas(_width, _height);
-        root.getChildren().add(_canvas);
+        _stack = new StackPane();
+        _stack.getChildren().addAll(_canvas);
+        root.getChildren().add(_stack);
+        //root.getChildren().add(_canvas);
         _jfxScene = new Scene(root);
         stage.setScene(_jfxScene);
         stage.show();
@@ -88,6 +104,30 @@ public class Window implements MessageHandler, PulseEntity {
         }
         else if (message.getMessageName().equals("FULLSCREEN_WAS_CHANGED")) {
             _stage.setFullScreen(_isFullscreen);
+        }
+
+        switch(message.getMessageName())
+        {
+            case Singleton.ADD_UI_ELEMENT:
+            {
+                System.out.println(message.getMessageName());
+                Button button = (Button)message.getMessageData();
+                _stage.hide();
+                System.out.println(button);
+                button.setVisible(true);
+                button.setLayoutY(50);
+                button.setLayoutY(50);
+                button.setPrefHeight(50);
+                button.setPrefWidth(50);
+                _stack.getChildren().add(button);
+                _stage.show();
+                System.out.println(button.getWidth() + " " + button.getHeight());
+                //_stack.getChildren().add((Node)message.getMessageData());
+            }
+            case Singleton.REMOVE_UI_ELEMENT:
+            {
+                _stack.getChildren().remove((Node)message.getMessageData());
+            }
         }
     }
 
