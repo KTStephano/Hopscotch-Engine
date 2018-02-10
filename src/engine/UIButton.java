@@ -22,12 +22,9 @@ public class UIButton {
      */
     public UIButton(String text, int x, int y)
     {
-        _x = x;
-        _y = y;
         _button = new Button();
         _button.setVisible(true);
-        _button.setLayoutX(_x);
-        _button.setLayoutY(_y);
+        setXY(x, y);
         setText(text);
     }
 
@@ -79,6 +76,7 @@ public class UIButton {
     public void addToWindow()
     {
         Singleton.engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, _button));
+        //Singleton.engine._window._stack.getChildren().add(_button);
     }
 
     public void removeFromWindow()

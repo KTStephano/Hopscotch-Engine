@@ -8,6 +8,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -21,7 +22,7 @@ import javafx.stage.Stage;
  */
 public class Window implements MessageHandler, PulseEntity {
     private Stage _stage;
-    private StackPane _stack;
+    public Pane _stack;
     private Canvas _canvas;
     private Scene _jfxScene;
     private GraphicsContext _gc;
@@ -55,8 +56,8 @@ public class Window implements MessageHandler, PulseEntity {
         // We want to update frequently to check for resizes, so tell the system to add us as a pulse entity
         Singleton.engine.getMessagePump().sendMessage(new Message(Singleton.ADD_PULSE_ENTITY, this));
         Singleton.engine.getConsoleVariables().registerVariable(new ConsoleVariable("FULLSCREEN", "false"));
-        Singleton.engine.getConsoleVariables().registerVariable(new ConsoleVariable("SCR_WIDTH", "512"));
-        Singleton.engine.getConsoleVariables().registerVariable(new ConsoleVariable("SCR_HEIGHT", "256"));
+        Singleton.engine.getConsoleVariables().registerVariable(new ConsoleVariable("SCR_WIDTH", "1024"));
+        Singleton.engine.getConsoleVariables().registerVariable(new ConsoleVariable("SCR_HEIGHT", "768"));
         ConsoleVariables cvars = Singleton.engine.getConsoleVariables();
         _isFullscreen = Boolean.parseBoolean(cvars.find("FULLSCREEN").getcvarValue());
         _width = Integer.parseInt(cvars.find("SCR_WIDTH").getcvarValue());
@@ -81,11 +82,11 @@ public class Window implements MessageHandler, PulseEntity {
         _stage = stage;
         Group root = new Group();
         _canvas = new Canvas(_width, _height);
-        _stack = new StackPane();
+        _stack = new Pane();
         _stack.getChildren().addAll(_canvas);
         root.getChildren().add(_stack);
         //root.getChildren().add(_canvas);
-        _jfxScene = new Scene(root);
+        _jfxScene = new Scene(root, _width, _height);
         stage.setScene(_jfxScene);
         stage.show();
         _gc = _canvas.getGraphicsContext2D();
@@ -111,17 +112,20 @@ public class Window implements MessageHandler, PulseEntity {
             case Singleton.ADD_UI_ELEMENT:
             {
                 System.out.println(message.getMessageName());
-                Button button = (Button)message.getMessageData();
-                _stage.hide();
-                System.out.println(button);
+                Button button = new Button("Test 2");//(Button)message.getMessageData();
                 button.setVisible(true);
                 button.setLayoutY(50);
                 button.setLayoutY(50);
-                button.setPrefHeight(50);
-                button.setPrefWidth(50);
-                _stack.getChildren().add(button);
-                _stage.show();
-                System.out.println(button.getWidth() + " " + button.getHeight());
+                button.setPrefHeight(100);
+                button.setPrefWidth(100);
+                Button b2 = (javafx.scene.control.Button)message.getMessageData();
+                b2.setLayoutY(0);
+                b2.setLayoutX(0);
+                b2.setPrefHeight(100);
+                b2.setPrefWidth(100);
+                b2.setVisible(true);
+                _stack.getChildren().addAll(b2, button);
+                System.out.println(message.getMessageData().getClass().getName());
                 //_stack.getChildren().add((Node)message.getMessageData());
             }
             case Singleton.REMOVE_UI_ELEMENT:

@@ -2,6 +2,8 @@ package application;
 
 import engine.*;
 
+import java.util.LinkedList;
+
 /**
  * This is the only part of the application that the engine
  * directly and explicitly knows about. It only guarantees
@@ -10,14 +12,27 @@ import engine.*;
  * with the engine
  */
 public class ApplicationEntryPoint {
+    UIButton button = new UIButton("hello", 50, 50);
+    LinkedList<Integer> list = new LinkedList<>();
+    boolean t = false;
     /**
      * Initializes the application
      */
     public void init()
     {
-        UIButton button = new UIButton("hello", 50, 50);
+        //button = new UIButton("hello", 50, 50);
         button.setWidthHeight(100,100);
-        button.addToWindow();
+        //button.addToWindow();
+        Singleton.engine.getMessagePump().registerMessage(new Message("test"));
+        Singleton.engine.getMessagePump().signalInterest("test", new MessageHandler() {
+            @Override
+            public void handleMessage(Message message) {
+                ((LinkedList<Integer>)message.getMessageData()).add(100);
+                System.out.println("SIZE NOW = " + list.size());
+            }
+        });
+        System.out.println("SIZE = " + list.size());
+        Singleton.engine.getMessagePump().sendMessage(new Message("test", list));
     }
 
     /**

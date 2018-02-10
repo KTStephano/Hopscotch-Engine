@@ -62,6 +62,8 @@ public class Engine extends Application implements PulseEntity, MessageHandler {
         }.start();
     }
 
+    boolean t = true;
+
     /**
      * Represents the main game/simulation loop
      */
@@ -72,6 +74,12 @@ public class Engine extends Application implements PulseEntity, MessageHandler {
         for (PulseEntity entity : _pulseEntities)
         {
             entity.pulse(deltaSeconds);
+        }
+        if (t) {
+            UIButton button = new UIButton("engine", 0, 0);
+            button.setWidthHeight(50, 50);
+            button.addToWindow();
+            t = false;
         }
     }
 

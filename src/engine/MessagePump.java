@@ -43,7 +43,7 @@ public class MessagePump {
         // Only add it if it has not been added yet
         if (!_registeredMessages.containsKey(message.getMessageName()))
         {
-            System.out.println("Registering " + message.getMessageName());
+            System.out.println("Registering message type (" + message.getMessageName() + ")");
             _registeredMessages.put(message.getMessageName(), message);
             _registeredHandlers.put(message, new LinkedList<>());
         }

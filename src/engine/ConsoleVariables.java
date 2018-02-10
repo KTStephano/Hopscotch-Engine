@@ -45,7 +45,11 @@ public class ConsoleVariables {
         {
             find(cvar.getcvarName()).setDefault(cvar.getcvarDefault());
         }
-        else _cvars.put(cvar.getcvarName(), cvar);
+        else
+        {
+            System.out.println("Registering console variable (" + cvar + ")");
+            _cvars.put(cvar.getcvarName(), cvar);
+        }
     }
 
     public void unregisterVariable(String cvar)
