@@ -3,7 +3,7 @@ package engine;
 /**
  * This interface should be implemented by any class that wants
  * to participate in receiving and dealing with messages being
- * passed around the engine.
+ * passed around the simulation.engine.
  *
  * @author Justin Hall
  */

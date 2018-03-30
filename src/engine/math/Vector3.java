@@ -14,6 +14,11 @@ public class Vector3 {
     {
     }
 
+    @Override
+    public String toString() {
+        return "[" + _x + ", " + _y + ", " + _z + "]";
+    }
+
     public Vector3(double val)
     {
         setXYZ(val, val, val);

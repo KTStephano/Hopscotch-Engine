@@ -1,34 +1,75 @@
 package engine;
 
-import java.io.Console;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Represents an individual console variable and
- * corresponding helper functions.
+ * Represents an individual key-value console variable and
+ * corresponding helper functions. A console variable
+ * is a very simple means of storing some piece of data
+ * which is meant to be modified from a variety of different
+ * input streams. Such input streams include:
+ *
+ *      Command Line
+ *      External Config Files
+ *      Other Objects
+ *
+ * On top of storing the data as a raw string, a console variable
+ * will also attempt to cast the string to an integer, double, and
+ * boolean. You can then retrieve easily retrieve the pre-casted
+ * value via a couple of helper functions.
+ *
+ * If it fails to cast the data, this is not an issue. It will simply
+ * maintain the data as a raw string for later use/manual casting.
  *
  * @author Justin Hall
  */
 public class ConsoleVariable {
-    private String _cvarName;
-    private String _defaultValue;
-    private String _cvarValue; // Raw String value
-    private int _cvarIntVal; // Defaults to -1 if _cvarValue cannot be casted
-    private double _cvarFloatVal; // Defaults to -1.0 if _cvarValue cannot be casted
+    private AtomicReference<String> _cvarName;
+    private AtomicReference<String> _defaultValue;
+    private AtomicReference<String> _cvarValue; // Raw String value
+    private AtomicInteger _cvarIntVal; // Defaults to -1 if _cvarValue cannot be casted
+    private AtomicReference<Double> _cvarFloatVal; // Defaults to -1.0 if _cvarValue cannot be casted
+    private AtomicBoolean _cvarBoolVal; // Defaults to false
+    private AtomicInteger _numEdits; // Number of times this variable was edited
 
-    public ConsoleVariable(String name, String defaultValue)
     {
-        _cvarName = name;
-        Singleton.engine.getMessagePump().registerMessage(new Message(_cvarName + "_WAS_CHANGED"));
-        _defaultValue = defaultValue;
-        _cvarValue = defaultValue;
-        setValueNoMessageDispatch(_cvarValue);
+        _cvarName = new AtomicReference<>("");
+        _defaultValue = new AtomicReference<>("");
+        _cvarValue = new AtomicReference<>("");
+        _cvarIntVal = new AtomicInteger();
+        _cvarBoolVal = new AtomicBoolean(false);
+        _cvarFloatVal = new AtomicReference<>();
+        _numEdits = new AtomicInteger(0);
     }
 
+    /**
+     * Creates a new console variable. Keep in mind that the actual value of the
+     * console variable will be determined by the default value given here.
+     * @param name name of the variable
+     * @param defaultValue default value in the form of a string (used during console variable reset)
+     */
+    public ConsoleVariable(String name, String defaultValue)
+    {
+        _cvarName.set(name);
+        //Singleton.simulation.engine.getMessagePump().registerMessage(new Message(_cvarName + "_WAS_CHANGED"));
+        _defaultValue.set(defaultValue);
+        _setValueNoMessageDispatch(defaultValue);
+    }
+
+    /**
+     * Creates a new, fully-specified console variable
+     * @param name name of the console variable
+     * @param defaultValue default value in the form of a string (used during console variable reset)
+     * @param value starting value of the console variable which is separate from the default value
+     */
     public ConsoleVariable(String name, String defaultValue, String value)
     {
-        _cvarName = name;
-        _defaultValue = defaultValue;
-        setValueNoMessageDispatch(value);
+        _cvarName.set(name);
+        _defaultValue.set(defaultValue);
+        _setValueNoMessageDispatch(value);
     }
 
     /**
@@ -36,7 +77,15 @@ public class ConsoleVariable {
      */
     public void reset()
     {
-        setValue(_defaultValue);
+        setValue(_defaultValue.get());
+    }
+
+    /**
+     * @return total number of times this console variable has been edited
+     */
+    public int getEditCount()
+    {
+        return _numEdits.get();
     }
 
     /**
@@ -44,7 +93,7 @@ public class ConsoleVariable {
      */
     public String getcvarName()
     {
-        return _cvarName;
+        return _cvarName.get();
     }
 
     /**
@@ -52,12 +101,12 @@ public class ConsoleVariable {
      */
     public String getcvarValue()
     {
-        return _cvarValue;
+        return _cvarValue.get();
     }
 
     public String getcvarDefault()
     {
-        return _defaultValue;
+        return _defaultValue.get();
     }
 
     /**
@@ -65,7 +114,7 @@ public class ConsoleVariable {
      */
     public int getcvarAsInt()
     {
-        return _cvarIntVal;
+        return _cvarIntVal.get();
     }
 
     /**
@@ -74,7 +123,12 @@ public class ConsoleVariable {
      */
     public double getcvarAsFloat()
     {
-        return _cvarFloatVal;
+        return _cvarFloatVal.get();
+    }
+
+    public boolean getcvarAsBool()
+    {
+        return _cvarBoolVal.get();
     }
 
     /**
@@ -82,9 +136,9 @@ public class ConsoleVariable {
      */
     public void setValue(String value)
     {
-        setValueNoMessageDispatch(value);
+        _setValueNoMessageDispatch(value);
         // Notify anyone who is interested that this variable was changed
-        Singleton.engine.getMessagePump().sendMessage(_cvarName + "_WAS_CHANGED");
+        //Singleton.simulation.engine.getMessagePump().sendMessage(_cvarName + "_WAS_CHANGED");
     }
 
     /**
@@ -92,21 +146,31 @@ public class ConsoleVariable {
      */
     public void setDefault(String defaultValue)
     {
-        _defaultValue = defaultValue;
+        _defaultValue.set(defaultValue);
     }
 
-    private void setValueNoMessageDispatch(String value)
+    private void _setValueNoMessageDispatch(String value)
     {
-        _cvarValue = value;
+        _numEdits.getAndIncrement();
+        _cvarValue.set(value);
         try
         {
-            _cvarIntVal = Integer.parseInt(_cvarValue);
-            _cvarFloatVal = Double.parseDouble(_cvarValue);
+            _cvarIntVal.set(Integer.parseInt(value));
+            _cvarFloatVal.set(Double.parseDouble(value));
         }
         catch (Exception e)
         {
-            _cvarIntVal = -1;
-            _cvarFloatVal = -1.0;
+            _cvarIntVal.set(-1);
+            _cvarFloatVal.set(-1.0);
+        }
+        // Try to cast it to a boolean
+        try
+        {
+            _cvarBoolVal.set(Boolean.parseBoolean(value));
+        }
+        catch (Exception e)
+        {
+            _cvarBoolVal.set(false);
         }
     }
 
@@ -122,6 +186,6 @@ public class ConsoleVariable {
 
     @Override
     public String toString() {
-        return "CVar: " + _cvarName + "; value: " + _cvarValue;
+        return "name: " + _cvarName + "; value: " + _cvarValue;
     }
 }

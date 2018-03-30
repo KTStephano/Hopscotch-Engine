@@ -3,19 +3,41 @@ package engine;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * The MessagePump is responsible for collecting messages
- * passed around the engine during a given frame. At some point
+ * The message pump is responsible for collecting messages
+ * passed around the application during a given frame. At some point
  * it can be asked to dispatch the messages (events) to any system
  * or other object which has expressed interest.
+ *
+ * This system effectively removes the need to pass around references
+ * to objects which manage a certain piece of functionality. Instead the
+ * message pump collects all relevant references and dispatches the messages
+ * to whoever has signaled interest.
+ *
+ * As an added benefit, since you are not passing around references to
+ * everyone that needs the functionality the underlying objects provide,
+ * you can move functionality around behind the scenes without having
+ * to change any of the code which sends the messages and signals interest
+ * in those messages.
  *
  * @author Justin Hall
  */
 public class MessagePump {
-    private final HashMap<String, Message> _registeredMessages = new HashMap<>();
-    private final HashMap<Message, LinkedList<MessageHandler>> _registeredHandlers = new HashMap<>();
-    private final LinkedList<Message> _messageDispatchBuffer = new LinkedList<>();
+    private final ConcurrentHashMap<String, Message> _registeredMessages = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Message, LinkedList<MessageHandler>> _registeredHandlers = new ConcurrentHashMap<>();
+    private final ConcurrentLinkedQueue<Message> _messageBuffer = new ConcurrentLinkedQueue<>();
+
+    /**
+     * Gets rid of all registered message handlers, meaning no references will
+     * be kept to them
+     */
+    public void clearAllMessageHandlers()
+    {
+        _registeredHandlers.clear();
+    }
 
     /**
      * Tells the message pump that you are interested in receiving event
@@ -25,11 +47,11 @@ public class MessagePump {
      */
     public void signalInterest(String message, MessageHandler handler)
     {
-        if (!contains(message))
-        {
+        LinkedList<MessageHandler> handlers = _registeredHandlers.get(getRegisteredMessage(message));
+        if (handlers == null) {
             throw new IllegalArgumentException("Non-registered message passed into MessagePump.signalInterest");
         }
-        _registeredHandlers.get(getRegisteredMessage(message)).add(handler);
+        handlers.add(handler);
     }
 
     /**
@@ -41,12 +63,9 @@ public class MessagePump {
     public void registerMessage(Message message)
     {
         // Only add it if it has not been added yet
-        if (!_registeredMessages.containsKey(message.getMessageName()))
-        {
-            System.out.println("Registering message type (" + message.getMessageName() + ")");
-            _registeredMessages.put(message.getMessageName(), message);
-            _registeredHandlers.put(message, new LinkedList<>());
-        }
+        System.out.println("Registering message type (" + message.getMessageName() + ")");
+        _registeredMessages.putIfAbsent(message.getMessageName(), message);
+        _registeredHandlers.putIfAbsent(message, new LinkedList<>());
     }
 
     /**
@@ -114,12 +133,12 @@ public class MessagePump {
      */
     public void sendMessage(Message message)
     {
-        System.out.println("Trying to send message: " + message.getMessageName());
+        //System.out.println("Sending message: " + message.getMessageName());
         if (!_registeredMessages.containsKey(message.getMessageName()))
         {
             throw new IllegalArgumentException("Non-registered message passed into MessagePump");
         }
-        _messageDispatchBuffer.add(message);
+        _messageBuffer.add(message);
     }
 
     /**
@@ -133,11 +152,19 @@ public class MessagePump {
     }
 
     /**
-     * If you are not the engine then it is best not to call this
+     * If you are not the simulation.engine then it is best not to call this
      */
-    public void dispatchMessages()
+    void dispatchMessages()
     {
-        for (Message msg : _messageDispatchBuffer)
+        LinkedList<Message> buffer = new LinkedList<>();
+        synchronized(this) {
+            int numMessages = _messageBuffer.size(); // Take a snapshot of the size
+            for (int i = 0; i < numMessages; ++i) {
+                Message msg = _messageBuffer.poll();
+                buffer.add(msg);
+            }
+        }
+        for (Message msg : buffer)
         {
             LinkedList<MessageHandler> interested = _registeredHandlers.get(msg);
             for (MessageHandler handler : interested)
@@ -145,7 +172,5 @@ public class MessagePump {
                 handler.handleMessage(msg);
             }
         }
-        // Make sure we get rid of all recently-dispatched messages
-        _messageDispatchBuffer.clear();
     }
 }

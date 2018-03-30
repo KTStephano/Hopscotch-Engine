@@ -1,7 +1,7 @@
 package engine;
 
 /**
- * A message represents anything within the engine that
+ * A message represents anything within the simulation.engine that
  * is of interest to any of its objects/systems. For example,
  * if we are particularly interested in when the enter key
  * is pressed down, we might register a "K_DOWN" message with
