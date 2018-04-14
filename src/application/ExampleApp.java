@@ -19,9 +19,9 @@ class Logic implements LogicEntity {
     private int num = 10;
     private long ms = System.currentTimeMillis();
     @Override
-    public void process() {
+    public void process(double deltaSeconds) {
         long newMs = System.currentTimeMillis();
-        double deltaSeconds = (newMs - ms) / 1000.0;
+        //deltaSeconds = (newMs - ms) / 1000.0;
         System.out.println(deltaSeconds);
         ms = newMs;
         if (num == 0) {

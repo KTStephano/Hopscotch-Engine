@@ -1,6 +1,6 @@
 package engine;
 
-import javafx.scene.paint.Color;
+import javafx.scene.canvas.GraphicsContext;
 
 /**
  * Implement this class for each object you want to be able to add to
@@ -8,10 +8,7 @@ import javafx.scene.paint.Color;
  *
  * @author Justin Hall
  */
-public abstract class RenderEntity extends ActorGraph implements PulseEntity {
-    private String _texture;
-    private Color _color = Color.RED;
-
+public abstract class RenderEntity extends GraphicsEntity implements PulseEntity {
     /**
      * This function ensures that the render entity is added to the world. After
      * calling this it will be regularly called by the Engine and its movement
@@ -19,8 +16,8 @@ public abstract class RenderEntity extends ActorGraph implements PulseEntity {
      */
     public void addToWorld()
     {
+        super.addToWorld();
         Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_PULSE_ENTITY, this));
-        Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_RENDER_ENTITY, this));
     }
 
     /**
@@ -29,28 +26,12 @@ public abstract class RenderEntity extends ActorGraph implements PulseEntity {
      */
     public void removeFromWorld()
     {
+        super.addToWorld();
         Engine.getMessagePump().sendMessage(new Message(Singleton.REMOVE_PULSE_ENTITY, this));
-        Engine.getMessagePump().sendMessage(new Message(Singleton.REMOVE_RENDER_ENTITY, this));
     }
 
-    public void setTexture(String texture)
-    {
-        _texture = texture;
-        Engine.getMessagePump().sendMessage(new Message(Singleton.REGISTER_TEXTURE, texture));
-    }
-
-    public void setColor(Color color)
-    {
-        _color = color;
-    }
-
-    public String getTexture()
-    {
-        return _texture;
-    }
-
-    public Color getColor()
-    {
-        return _color;
+    @Override
+    public void render(GraphicsContext gc, double x, double y) {
+        gc.fillRect(x, y, getWidth(), getHeight());
     }
 }

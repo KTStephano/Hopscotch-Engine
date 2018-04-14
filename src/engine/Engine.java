@@ -417,8 +417,8 @@ public class Engine implements PulseEntity, MessageHandler {
         getMessagePump().registerMessage(new Message(Singleton.SET_FULLSCREEN));
         getMessagePump().registerMessage(new Message(Singleton.SET_SCR_HEIGHT));
         getMessagePump().registerMessage(new Message(Singleton.SET_SCR_WIDTH));
-        getMessagePump().registerMessage(new Message(Singleton.ADD_RENDER_ENTITY));
-        getMessagePump().registerMessage(new Message(Singleton.REMOVE_RENDER_ENTITY));
+        getMessagePump().registerMessage(new Message(Singleton.ADD_GRAPHICS_ENTITY));
+        getMessagePump().registerMessage(new Message(Singleton.REMOVE_GRAPHICS_ENTITY));
         getMessagePump().registerMessage(new Message(Singleton.REGISTER_TEXTURE));
         getMessagePump().registerMessage(new Message(Singleton.SET_MAIN_CAMERA));
         getMessagePump().registerMessage(new Message(Singleton.CONSOLE_VARIABLE_CHANGED));

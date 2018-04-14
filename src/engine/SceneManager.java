@@ -2,6 +2,7 @@ package engine;
 
 import javafx.scene.Node;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SceneManager {
     private final Object _defaultValue = new Object();
-    private final ConcurrentHashMap<RenderEntity, Object> _renderEntities = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<GraphicsEntity, Object> _renderEntities = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<PulseEntity, Object> _pulseEntities = new ConcurrentHashMap<>();
     // This needs to be an array list because the order that the GUI elements are inserted determines
     // the order they are displayed, but a hash map can't guarantee anything about the order
@@ -31,7 +32,7 @@ public class SceneManager {
     /**
      * Adds a RenderEntity to the frame but does not activate it
      */
-    public void add(RenderEntity entity) {
+    public void add(GraphicsEntity entity) {
         _renderEntities.putIfAbsent(entity, _defaultValue);
     }
 
@@ -86,9 +87,8 @@ public class SceneManager {
      * Activates only the render entities
      */
     public void activateRenderEntities() {
-        for (Map.Entry<RenderEntity, Object> entry : _renderEntities.entrySet()) {
-            _sendMessage(Singleton.ADD_RENDER_ENTITY, entry.getKey());
-            _sendMessage(Singleton.ADD_PULSE_ENTITY, entry.getKey());
+        for (Map.Entry<GraphicsEntity, Object> entry : _renderEntities.entrySet()) {
+            entry.getKey().addToWorld();
         }
     }
 
@@ -125,9 +125,8 @@ public class SceneManager {
      * Deactivates only the render entities
      */
     public void deactivateRenderEntities() {
-        for (Map.Entry<RenderEntity, Object> entry : _renderEntities.entrySet()) {
-            _sendMessage(Singleton.REMOVE_RENDER_ENTITY, entry.getKey());
-            _sendMessage(Singleton.REMOVE_PULSE_ENTITY, entry.getKey());
+        for (Map.Entry<GraphicsEntity, Object> entry : _renderEntities.entrySet()) {
+            entry.getKey().removeFromWorld();
         }
     }
 
@@ -168,9 +167,9 @@ public class SceneManager {
      *         safe but weakly consistent, meaning the list you get is only a snapshot
      *         of the state of the frame when you asked for it.
      */
-    public ArrayList<RenderEntity> getRenderEntities() {
-        ArrayList<RenderEntity> entities = new ArrayList<>();
-        for (Map.Entry<RenderEntity, Object> entry : _renderEntities.entrySet()) {
+    public ArrayList<GraphicsEntity> getGraphicsEntities() {
+        ArrayList<GraphicsEntity> entities = new ArrayList<>();
+        for (Map.Entry<GraphicsEntity, Object> entry : _renderEntities.entrySet()) {
             entities.add(entry.getKey());
         }
         return entities;

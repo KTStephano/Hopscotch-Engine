@@ -35,8 +35,8 @@ public class Singleton {
     public static final String REMOVE_ALL_PULSE_ENTITIES = "remove_all_pulse_entities";
     // Informs the rendering system to add the given entity to the world - the data
     // part of your message should contain the entity to add
-    public static final String ADD_RENDER_ENTITY = "add_render_entity";
-    public static final String REMOVE_RENDER_ENTITY = "remove_render_entity";
+    public static final String ADD_GRAPHICS_ENTITY = "add_render_entity";
+    public static final String REMOVE_GRAPHICS_ENTITY = "remove_render_entity";
     // Removes all currently registered render entities
     public static final String REMOVE_ALL_RENDER_ENTITIES = "remove_all_render_entities";
     // Tells the renderer to register the texture and cache it - the data part

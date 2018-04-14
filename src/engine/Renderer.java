@@ -24,9 +24,9 @@ import java.util.*;
 public class Renderer implements MessageHandler {
     private GraphicsContext _gc;
     private HashMap<String, ImageView> _textures = new HashMap<>();
-    private HashSet<RenderEntity> _entities = new HashSet<>();
+    private HashSet<GraphicsEntity> _entities = new HashSet<>();
     private HashSet<ActorGraph> _rootSet = new HashSet<>();
-    private TreeMap<Integer, ArrayList<RenderEntity>> _drawOrder = new TreeMap<>();
+    private TreeMap<Integer, ArrayList<GraphicsEntity>> _drawOrder = new TreeMap<>();
     private Camera _worldCamera = new Camera(); // Start with a default camera
     private Rotate _rotation = new Rotate(0);
 
@@ -35,8 +35,8 @@ public class Renderer implements MessageHandler {
         _gc = gc;
         _rotation.setAxis(new Point3D(0, 0, 1)); // In 2D we rotate about the z-axis
         // Signal interest
-        Engine.getMessagePump().signalInterest(Singleton.ADD_RENDER_ENTITY, this);
-        Engine.getMessagePump().signalInterest(Singleton.REMOVE_RENDER_ENTITY, this);
+        Engine.getMessagePump().signalInterest(Singleton.ADD_GRAPHICS_ENTITY, this);
+        Engine.getMessagePump().signalInterest(Singleton.REMOVE_GRAPHICS_ENTITY, this);
         Engine.getMessagePump().signalInterest(Singleton.REGISTER_TEXTURE, this);
         Engine.getMessagePump().signalInterest(Singleton.SET_MAIN_CAMERA, this);
         Engine.getMessagePump().signalInterest(Engine.R_RENDER_SCENE, this);
@@ -54,11 +54,11 @@ public class Renderer implements MessageHandler {
             case Engine.R_UPDATE_ENTITIES:
                 _updateEntities((Double)message.getMessageData());
                 break;
-            case Singleton.ADD_RENDER_ENTITY:
-                _entities.add((RenderEntity)message.getMessageData());
+            case Singleton.ADD_GRAPHICS_ENTITY:
+                _entities.add((GraphicsEntity) message.getMessageData());
                 break;
-            case Singleton.REMOVE_RENDER_ENTITY:
-                _entities.remove((RenderEntity)message.getMessageData());
+            case Singleton.REMOVE_GRAPHICS_ENTITY:
+                _entities.remove((GraphicsEntity)message.getMessageData());
                 break;
             case Singleton.REMOVE_ALL_RENDER_ENTITIES:
                 _entities.clear();
@@ -112,9 +112,9 @@ public class Renderer implements MessageHandler {
         Vector3 location;
         int screenWidth = Engine.getConsoleVariables().find(Singleton.SCR_WIDTH).getcvarAsInt();
         int screenHeight = Engine.getConsoleVariables().find(Singleton.SCR_HEIGHT).getcvarAsInt();
-        for (Map.Entry<Integer, ArrayList<RenderEntity>> entry : _drawOrder.entrySet())
+        for (Map.Entry<Integer, ArrayList<GraphicsEntity>> entry : _drawOrder.entrySet())
         {
-            for (RenderEntity entity : entry.getValue())
+            for (GraphicsEntity entity : entry.getValue())
             {
                 location = entity.getTranslationVec();
                 boolean isStatic = entity.isStaticActor();
@@ -145,7 +145,8 @@ public class Renderer implements MessageHandler {
                     else
                     {
                         _gc.setFill(entity.getColor());
-                        _gc.fillRect(screenX, screenY, width, height);
+                        entity.render(_gc, screenX, screenY);
+                        //_gc.fillRect(screenX, screenY, width, height);
                     }
                 }
             }
@@ -218,12 +219,12 @@ public class Renderer implements MessageHandler {
 
     private void _determineDrawOrder()
     {
-        for (Map.Entry<Integer, ArrayList<RenderEntity>> entry : _drawOrder.entrySet())
+        for (Map.Entry<Integer, ArrayList<GraphicsEntity>> entry : _drawOrder.entrySet())
         {
             entry.getValue().clear();
         }
 
-        for (RenderEntity entity : _entities)
+        for (GraphicsEntity entity : _entities)
         {
             int depth = (int)entity.getDepth() * -1; // * -1 because if the depth is negative it needs to come
             // later in the list so that it gets drawn last and
