@@ -1,4 +1,6 @@
-package engine;
+package engine.math;
+
+import java.util.Arrays;
 
 /**
  * A simple Matrix3x3 implementation with some common operations,
@@ -106,6 +108,20 @@ public class Matrix3 {
     public Matrix3(Vector3 col0, Vector3 col1, Vector3 col2)
     {
         set(col0, col1, col2);
+    }
+
+    /**
+     * Sets a matrix directly from an array whose length matches the dimensions
+     * of this array.
+     * @param elems 9-length array where the first 3 elements are row0, next 3 row1, last 3 row2
+     */
+    public Matrix3(double ... elems) {
+        if (elems.length != 9) throw new IllegalArgumentException("Array of invalid size given to Matrix3");
+        for (int row = 0; row < 3; ++row) {
+            for (int col = 0; col < 3; ++col) {
+                setElemAt(elems[3 * row + col], row, col);
+            }
+        }
     }
 
     /**
@@ -376,5 +392,9 @@ public class Matrix3 {
             str.append("\n");
         }
         return str.toString();
+    }
+
+    public double[] toArray() {
+        return Arrays.copyOf(_mat, _mat.length);
     }
 }

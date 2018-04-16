@@ -1,5 +1,6 @@
 package engine;
 
+import engine.math.Vector3;
 import javafx.geometry.Point3D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;

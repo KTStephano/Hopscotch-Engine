@@ -3,28 +3,17 @@ package engine;
 import javafx.scene.canvas.GraphicsContext;
 
 /**
- * Simple class for representing a 2D circle, optionally textured.
+ * Simple class for representing a 2D oval, optionally textured.
  */
 public class Circle2D extends GraphicsEntity {
-    private double _radius;
 
-    public Circle2D(double x, double y, double radius, double depth) {
+    public Circle2D(double x, double y, double radiusX, double radiusY, double depth) {
         setLocationXYDepth(x, y, depth);
-        _radius = radius;
-        setWidthHeight(radius, radius);
+        setWidthHeight(radiusX, radiusY);
     }
 
-    public double getRadius() {
-        return getWidth();
-    }
-
-    public void setRadius(double radius) {
-        _radius = radius;
-        setWidthHeight(radius, radius);
-    }
-
-    public void setWidthHeight(double width, double height) {
-        super.setWidthHeight(_radius, _radius);
+    public void setWidthHeight(double radiusX, double radiusY) {
+        super.setWidthHeight(radiusX, radiusY);
     }
 
     @Override

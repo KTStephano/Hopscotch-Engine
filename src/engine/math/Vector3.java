@@ -1,4 +1,4 @@
-package engine;
+package engine.math;
 
 /**
  * Represents a 3 dimensional vector
@@ -27,6 +27,11 @@ public class Vector3 {
     public Vector3(double x, double y, double z)
     {
         setXYZ(x, y, z);
+    }
+
+    public Vector3(double ... vals) {
+        if (vals.length != 3) throw new IllegalArgumentException("Array of invalid size passed to Vector3");
+        setXYZ(vals[0], vals[1], vals[2]);
     }
 
     /**
@@ -130,5 +135,13 @@ public class Vector3 {
         _x += other._x;
         _y += other._y;
         _z += other._z;
+    }
+
+    public double[] toArray() {
+        double[] result = new double[3];
+        result[0] = _x;
+        result[1] = _y;
+        result[2] = _z;
+        return result;
     }
 }

@@ -1,5 +1,7 @@
 package engine;
 
+import engine.math.Vector3;
+
 /**
  * Represents a virtual camera which can be attached
  * to a RenderEntity. This will calculate the transforms
