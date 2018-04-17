@@ -52,7 +52,6 @@ public class ExampleApp implements ApplicationEntryPoint{
 
     public static void main(String[] args) {
         ApplicationEntryPoint app = new ExampleApp();
-        EngineLoop loop = new EngineLoop();
-        loop.start(app, args);
+        EngineLoop.start(app, args);
     }
 }
