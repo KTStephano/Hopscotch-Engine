@@ -2,9 +2,7 @@ package engine;
 
 import engine.math.Vector3;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CollisionDetection implements Task, MessageHandler {
@@ -13,8 +11,8 @@ public class CollisionDetection implements Task, MessageHandler {
     private AtomicReference<Double> _deltaSeconds = new AtomicReference<>(0.0);
 
     public void init() {
-        Engine.getMessagePump().signalInterest(Singleton.ADD_GRAPHICS_ENTITY, this);
-        Engine.getMessagePump().signalInterest(Singleton.REMOVE_GRAPHICS_ENTITY, this);
+        Engine.getMessagePump().signalInterest(Constants.ADD_GRAPHICS_ENTITY, this);
+        Engine.getMessagePump().signalInterest(Constants.REMOVE_GRAPHICS_ENTITY, this);
         _actors = new HashSet<>();
         _rootSet = new HashSet<>();
     }
@@ -31,12 +29,12 @@ public class CollisionDetection implements Task, MessageHandler {
     @Override
     public void handleMessage(Message message) {
         switch(message.getMessageName()) {
-            case Singleton.ADD_GRAPHICS_ENTITY:
+            case Constants.ADD_GRAPHICS_ENTITY:
             {
                 _actors.add((ActorGraph)message.getMessageData());
                 break;
             }
-            case Singleton.REMOVE_GRAPHICS_ENTITY:
+            case Constants.REMOVE_GRAPHICS_ENTITY:
             {
                 Object obj = message.getMessageData();
                 if (obj == null) return;
@@ -49,10 +47,10 @@ public class CollisionDetection implements Task, MessageHandler {
     private void _updateEntities(double deltaSeconds)
     {
         _rootSet.clear();
-        int worldStartX = Engine.getConsoleVariables().find(Singleton.WORLD_START_X).getcvarAsInt();
-        int worldStartY = Engine.getConsoleVariables().find(Singleton.WORLD_START_Y).getcvarAsInt();
-        int worldWidth = Engine.getConsoleVariables().find(Singleton.WORLD_WIDTH).getcvarAsInt();
-        int worldHeight = Engine.getConsoleVariables().find(Singleton.WORLD_HEIGHT).getcvarAsInt();
+        int worldStartX = Engine.getConsoleVariables().find(Constants.WORLD_START_X).getcvarAsInt();
+        int worldStartY = Engine.getConsoleVariables().find(Constants.WORLD_START_Y).getcvarAsInt();
+        int worldWidth = Engine.getConsoleVariables().find(Constants.WORLD_WIDTH).getcvarAsInt();
+        int worldHeight = Engine.getConsoleVariables().find(Constants.WORLD_HEIGHT).getcvarAsInt();
         // Account for the fact that worldStartX/worldStartY may not simply be 0
         worldWidth += worldStartX;
         worldHeight += worldStartY;

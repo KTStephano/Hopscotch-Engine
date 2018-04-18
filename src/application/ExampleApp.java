@@ -25,7 +25,7 @@ class Logic implements LogicEntity {
         System.out.println(deltaSeconds);
         ms = newMs;
         if (num == 0) {
-            Engine.getMessagePump().sendMessage(new Message(Singleton.REMOVE_LOGIC_ENTITY, this));
+            Engine.getMessagePump().sendMessage(new Message(Constants.REMOVE_LOGIC_ENTITY, this));
             return;
         }
         --num;
@@ -41,7 +41,7 @@ public class ExampleApp implements ApplicationEntryPoint{
         System.out.println("Initialized");
         for (int i = 0; i < 100; ++i) {
             Logic logic = new Logic();
-            Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_LOGIC_ENTITY, logic));
+            Engine.getMessagePump().sendMessage(new Message(Constants.ADD_LOGIC_ENTITY, logic));
         }
     }
 

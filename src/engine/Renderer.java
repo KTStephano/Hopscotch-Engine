@@ -46,13 +46,13 @@ public class Renderer implements MessageHandler {
         _renderedScene = false;
         //_updatingEntities = false;
         // Signal interest
-        Engine.getMessagePump().signalInterest(Singleton.ADD_GRAPHICS_ENTITY, this);
-        Engine.getMessagePump().signalInterest(Singleton.REMOVE_GRAPHICS_ENTITY, this);
-        Engine.getMessagePump().signalInterest(Singleton.REGISTER_TEXTURE, this);
-        Engine.getMessagePump().signalInterest(Singleton.SET_MAIN_CAMERA, this);
+        Engine.getMessagePump().signalInterest(Constants.ADD_GRAPHICS_ENTITY, this);
+        Engine.getMessagePump().signalInterest(Constants.REMOVE_GRAPHICS_ENTITY, this);
+        Engine.getMessagePump().signalInterest(Constants.REGISTER_TEXTURE, this);
+        Engine.getMessagePump().signalInterest(Constants.SET_MAIN_CAMERA, this);
         Engine.getMessagePump().signalInterest(Engine.R_RENDER_SCENE, this);
         Engine.getMessagePump().signalInterest(Engine.R_UPDATE_ENTITIES, this);
-        Engine.getMessagePump().signalInterest(Singleton.REMOVE_ALL_RENDER_ENTITIES, this);
+        Engine.getMessagePump().signalInterest(Constants.REMOVE_ALL_RENDER_ENTITIES, this);
     }
 
     @Override
@@ -69,16 +69,16 @@ public class Renderer implements MessageHandler {
                 _renderedScene = false;
                 Engine.scheduleLogicTasks(_collisionTask, () -> _updatingEntities = false);
                 break;
-            case Singleton.ADD_GRAPHICS_ENTITY:
+            case Constants.ADD_GRAPHICS_ENTITY:
                 _entities.add((GraphicsEntity) message.getMessageData());
                 break;
-            case Singleton.REMOVE_GRAPHICS_ENTITY:
+            case Constants.REMOVE_GRAPHICS_ENTITY:
                 _entities.remove((GraphicsEntity)message.getMessageData());
                 break;
-            case Singleton.REMOVE_ALL_RENDER_ENTITIES:
+            case Constants.REMOVE_ALL_RENDER_ENTITIES:
                 _entities.clear();
                 break;
-            case Singleton.REGISTER_TEXTURE: {
+            case Constants.REGISTER_TEXTURE: {
                 String texture = (String)message.getMessageData();
                 if (!_textures.containsKey(texture)) {
                     try {
@@ -93,7 +93,7 @@ public class Renderer implements MessageHandler {
                 }
                 break;
             }
-            case Singleton.SET_MAIN_CAMERA:
+            case Constants.SET_MAIN_CAMERA:
                 _worldCamera = (Camera)message.getMessageData();
                 break;
 
@@ -107,8 +107,8 @@ public class Renderer implements MessageHandler {
         // Clear the screen
         _gc.setFill(Color.WHITE);
         _gc.fillRect(0, 0,
-                Engine.getConsoleVariables().find(Singleton.SCR_WIDTH).getcvarAsFloat(),
-                Engine.getConsoleVariables().find(Singleton.SCR_HEIGHT).getcvarAsFloat());
+                Engine.getConsoleVariables().find(Constants.SCR_WIDTH).getcvarAsFloat(),
+                Engine.getConsoleVariables().find(Constants.SCR_HEIGHT).getcvarAsFloat());
 
         // Reorder scene as needed so things are drawn in the proper order
         _determineDrawOrder();
@@ -127,8 +127,8 @@ public class Renderer implements MessageHandler {
         double width;
         double height;
         Vector3 location;
-        int screenWidth = Engine.getConsoleVariables().find(Singleton.SCR_WIDTH).getcvarAsInt();
-        int screenHeight = Engine.getConsoleVariables().find(Singleton.SCR_HEIGHT).getcvarAsInt();
+        int screenWidth = Engine.getConsoleVariables().find(Constants.SCR_WIDTH).getcvarAsInt();
+        int screenHeight = Engine.getConsoleVariables().find(Constants.SCR_HEIGHT).getcvarAsInt();
         for (Map.Entry<Integer, ArrayList<GraphicsEntity>> entry : _drawOrder.entrySet())
         {
             for (GraphicsEntity entity : entry.getValue())
@@ -175,10 +175,10 @@ public class Renderer implements MessageHandler {
     private void _updateEntities(double deltaSeconds)
     {
         _rootSet.clear();
-        int worldStartX = Engine.getConsoleVariables().find(Singleton.WORLD_START_X).getcvarAsInt();
-        int worldStartY = Engine.getConsoleVariables().find(Singleton.WORLD_START_Y).getcvarAsInt();
-        int worldWidth = Engine.getConsoleVariables().find(Singleton.WORLD_WIDTH).getcvarAsInt();
-        int worldHeight = Engine.getConsoleVariables().find(Singleton.WORLD_HEIGHT).getcvarAsInt();
+        int worldStartX = Engine.getConsoleVariables().find(Constants.WORLD_START_X).getcvarAsInt();
+        int worldStartY = Engine.getConsoleVariables().find(Constants.WORLD_START_Y).getcvarAsInt();
+        int worldWidth = Engine.getConsoleVariables().find(Constants.WORLD_WIDTH).getcvarAsInt();
+        int worldHeight = Engine.getConsoleVariables().find(Constants.WORLD_HEIGHT).getcvarAsInt();
         // Account for the fact that worldStartX/worldStartY may not simply be 0
         worldWidth += worldStartX;
         worldHeight += worldStartY;
