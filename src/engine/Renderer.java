@@ -49,7 +49,8 @@ public class Renderer implements MessageHandler {
         int worldY = Engine.getConsoleVariables().find(Constants.WORLD_START_Y).getcvarAsInt();
         int worldWidth = Engine.getConsoleVariables().find(Constants.WORLD_WIDTH).getcvarAsInt();
         int worldHeight = Engine.getConsoleVariables().find(Constants.WORLD_HEIGHT).getcvarAsInt();
-        _graphicsEntities = new QuadTree<>(worldX, worldY, worldWidth > worldHeight ? worldWidth : worldHeight);
+        _graphicsEntities = new QuadTree<>(worldX, worldY, worldWidth > worldHeight ? worldWidth : worldHeight,
+                10, 100);
         //_updatingEntities = false;
         // Signal interest
         Engine.getMessagePump().signalInterest(Constants.ADD_GRAPHICS_ENTITY, this);
@@ -110,6 +111,17 @@ public class Renderer implements MessageHandler {
     {
         if (_updatingEntities) return; // Not done with collisions/movement simulation
         _collision.setDeltaSeconds(deltaSeconds);
+        // Dispatch all collision events
+        HashMap<Actor, HashSet<Actor>> collisions = _collision.getPreviousCollisions();
+        for (Map.Entry<Actor, HashSet<Actor>> entry : collisions.entrySet()) {
+            HashSet<Actor> actors = entry.getValue();
+            if (actors.size() > 0) {
+                Actor a = entry.getKey();
+                a.onActorOverlapped(a, actors);
+                HashSet<CollisionEventCallback> callbacks = a.getCollisionEventCallbacks();
+                for (CollisionEventCallback callback : callbacks) callback.onActorOverlapped(a, actors);
+            }
+        }
         // Clear the screen
         _gc.setFill(Color.WHITE);
         _gc.fillRect(0, 0,
@@ -152,7 +164,7 @@ public class Renderer implements MessageHandler {
         // Reorder scene as needed so things are drawn in the proper order
         //HashSet<GraphicsEntity> actors = _graphicsEntities.getAllActors();
         HashSet<GraphicsEntity> actors = _graphicsEntities.getActorsWithinArea(0, 0, screenWidth, screenHeight);
-        System.out.println("Before: " + _entities.size() + "; after: " + actors.size());
+        //System.out.println("Before: " + _entities.size() + "; after: " + actors.size());
         _determineDrawOrder(actors);
         for (Map.Entry<Integer, ArrayList<GraphicsEntity>> entry : _drawOrder.entrySet())
         {

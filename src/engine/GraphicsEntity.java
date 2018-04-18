@@ -51,7 +51,8 @@ public abstract class GraphicsEntity extends ActorGraph {
      * @param x x-location for this entity (renderer likely recalculated your location, so use this)
      * @param y y-location for this entity (renderer likely recalculated your location, so use this)
      */
-    public abstract void render(GraphicsContext gc, double x, double y);
+    // package-private
+    abstract void render(GraphicsContext gc, double x, double y);
 
     public void setTexture(String texture)
     {

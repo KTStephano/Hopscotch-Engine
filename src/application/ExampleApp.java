@@ -3,6 +3,8 @@ package application;
 import engine.*;
 import javafx.scene.paint.Color;
 
+import java.util.HashSet;
+
 class SquareTest extends RenderEntity {
     SquareTest(int x, int y) {
         setWidthHeight(10, 10);
@@ -12,6 +14,11 @@ class SquareTest extends RenderEntity {
 
     @Override
     public void pulse(double deltaSeconds) {
+    }
+
+    @Override
+    public void onActorOverlapped(Actor actor, HashSet<Actor> actors) {
+
     }
 }
 

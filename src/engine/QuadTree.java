@@ -13,14 +13,16 @@ public class QuadTree<E extends Actor> implements Iterable<E> {
         private int _widthHeight;
         private int _edgeX;
         private int _edgeY;
+        private final int _loadFactor;
         private final int _threshold;
         private ArrayList<QuadNode> _children = null;
         private HashSet<E> _objects = new HashSet<>();
 
-        public QuadNode(int startX, int startY, int widthHeight, int threshold) {
+        public QuadNode(int startX, int startY, int widthHeight, int loadFactor, int threshold) {
             _startX = startX;
             _startY = startY;
             _widthHeight = widthHeight;
+            _loadFactor = loadFactor;
             _threshold = threshold;
             _edgeX = _startX + _widthHeight;
             _edgeY = _startY + _widthHeight;
@@ -30,7 +32,7 @@ public class QuadTree<E extends Actor> implements Iterable<E> {
             if (!intersects(a)) return false; // Actor not within this node's region
             if (!_objects.add(a)) return true; // Already added
             if (_children == null) {
-                if (_objects.size() >= _threshold && (_widthHeight / 2) > 100) {
+                if (_objects.size() >= _loadFactor && (_widthHeight / 2) > _threshold) {
                     _split();
                 }
             }
@@ -113,10 +115,11 @@ public class QuadTree<E extends Actor> implements Iterable<E> {
             _children = new ArrayList<>();
             int newWidthHeight = _widthHeight / 2;
             // Add the 4 new children
-            _children.add(new QuadNode(_startX, _startY, newWidthHeight, _threshold));
-            _children.add(new QuadNode(_startX + newWidthHeight, _startY, newWidthHeight, _threshold));
-            _children.add(new QuadNode(_startX, _startY + newWidthHeight, newWidthHeight, _threshold));
-            _children.add(new QuadNode(_startX + newWidthHeight, _startY + newWidthHeight, newWidthHeight, _threshold));
+            _children.add(new QuadNode(_startX, _startY, newWidthHeight, _loadFactor, _threshold));
+            _children.add(new QuadNode(_startX + newWidthHeight, _startY, newWidthHeight, _loadFactor, _threshold));
+            _children.add(new QuadNode(_startX, _startY + newWidthHeight, newWidthHeight, _loadFactor, _threshold));
+            _children.add(new QuadNode(_startX + newWidthHeight, _startY + newWidthHeight, newWidthHeight,
+                    _loadFactor, _threshold));
             for (E obj : _objects) {
                 for (QuadNode node : _children) {
                     node.add(obj);
@@ -153,9 +156,20 @@ public class QuadTree<E extends Actor> implements Iterable<E> {
     }
 
     private QuadNode _root;
+    private final int _loadFactor;
+    private final int _splitThreshold;
 
     public QuadTree(int startX, int startY, int widthHeight) {
-        _root = new QuadNode(startX, startY, widthHeight, 10);
+        _loadFactor = 10;
+        _splitThreshold = 100;
+        _root = new QuadNode(startX, startY, widthHeight, _loadFactor, _splitThreshold);
+    }
+
+    public QuadTree(int startX, int startY, int widthHeight,
+                    int loadFactor, int splitThreshold) {
+        _loadFactor = loadFactor;
+        _splitThreshold = splitThreshold;
+        _root = new QuadNode(startX, startY, widthHeight, _loadFactor, _splitThreshold);
     }
 
     public boolean add(E a) {
