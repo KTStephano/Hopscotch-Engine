@@ -17,7 +17,7 @@ import engine.math.Vector3;
  * @author Justin Hall
  */
 public class Camera {
-    private RenderEntity _attachedTo;
+    private Actor _attachedTo;
     private Vector3 _worldTranslate = new Vector3(0.0);
     private Vector3 _editedEntityLocation = new Vector3(0.0);
     private double _widthScalar = 2.5;
@@ -26,7 +26,7 @@ public class Camera {
     /**
      * Returns the entity that this camera was attached to
      */
-    public RenderEntity getEntity()
+    public Actor getEntity()
     {
         return _attachedTo;
     }
@@ -34,7 +34,7 @@ public class Camera {
     /**
      * Attaches this camera to the given entity
      */
-    public void attachToEntity(RenderEntity entity)
+    public void attachToEntity(Actor entity)
     {
         _attachedTo = entity;
     }

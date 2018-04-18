@@ -5,9 +5,10 @@ import engine.math.Vector3;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class CollisionDetection implements Task, MessageHandler {
+public class PhysicsSimulation implements Task, MessageHandler {
     private HashSet<ActorGraph> _actors;
     private HashSet<ActorGraph> _rootSet;
+    private QuadTree<ActorGraph> _actorTree;
     private AtomicReference<Double> _deltaSeconds = new AtomicReference<>(0.0);
 
     public void init() {
@@ -15,6 +16,17 @@ public class CollisionDetection implements Task, MessageHandler {
         Engine.getMessagePump().signalInterest(Constants.REMOVE_GRAPHICS_ENTITY, this);
         _actors = new HashSet<>();
         _rootSet = new HashSet<>();
+        int worldStartX = Engine.getConsoleVariables().find(Constants.WORLD_START_X).getcvarAsInt();
+        int worldStartY = Engine.getConsoleVariables().find(Constants.WORLD_START_Y).getcvarAsInt();
+        int worldWidth = Engine.getConsoleVariables().find(Constants.WORLD_WIDTH).getcvarAsInt();
+        int worldHeight = Engine.getConsoleVariables().find(Constants.WORLD_HEIGHT).getcvarAsInt();
+        int worldWidthHeight = worldWidth > worldHeight ? worldWidth : worldHeight;
+        _actorTree = new QuadTree<>(worldStartX, worldStartY, worldWidthHeight);
+    }
+
+    // Returns the quad tree from the last physics simulation
+    public QuadTree<ActorGraph> getLatestQuadTree() {
+        return _actorTree;
     }
 
     public void setDeltaSeconds(double deltaSeconds) {
@@ -47,6 +59,7 @@ public class CollisionDetection implements Task, MessageHandler {
     private void _updateEntities(double deltaSeconds)
     {
         _rootSet.clear();
+        _actorTree.clear();
         int worldStartX = Engine.getConsoleVariables().find(Constants.WORLD_START_X).getcvarAsInt();
         int worldStartY = Engine.getConsoleVariables().find(Constants.WORLD_START_Y).getcvarAsInt();
         int worldWidth = Engine.getConsoleVariables().find(Constants.WORLD_WIDTH).getcvarAsInt();
@@ -76,6 +89,7 @@ public class CollisionDetection implements Task, MessageHandler {
                     depth);
             _checkAndCorrectOutOfBounds(graph, worldStartX, worldStartY, worldWidth, worldHeight);
             _rootSet.add(graph);
+            _actorTree.add(graph);
             for (ActorGraph attached : graph.getActors())
             {
                 _updateGraphEntitiesRecursive(attached, worldStartX, worldStartY, worldWidth,
@@ -98,6 +112,7 @@ public class CollisionDetection implements Task, MessageHandler {
                     actor.getLocationY() + deltaSpeedY * (actor.shouldConstrainYMovement() ? 0 : 1),
                     actor.getDepth());
             _checkAndCorrectOutOfBounds(actor, worldStartX, worldStartY, worldWidth, worldHeight);
+            _actorTree.add(actor);
         }
         _rootSet.add(actor);
         // Process its attached actors regardless
