@@ -30,7 +30,7 @@ public class QuadTree<E extends Actor> implements Iterable<E> {
             if (!intersects(a)) return false; // Actor not within this node's region
             if (!_objects.add(a)) return true; // Already added
             if (_children == null) {
-                if (_objects.size() >= _threshold && (_widthHeight / 2) > _threshold) {
+                if (_objects.size() >= _threshold && (_widthHeight / 2) > 100) {
                     _split();
                 }
             }

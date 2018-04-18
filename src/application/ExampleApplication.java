@@ -19,13 +19,13 @@ public class ExampleApplication implements ApplicationEntryPoint {
         rec.addToWorld();
         Camera camera = new Camera();
         camera.attachToEntity(rec);
-        camera.setAsMainCamera();
+        //camera.setAsMainCamera();
 
         Random rng = new Random();
         int worldWidth = Engine.getConsoleVariables().find(Constants.WORLD_WIDTH).getcvarAsInt();
         int worldHeight = Engine.getConsoleVariables().find(Constants.WORLD_HEIGHT).getcvarAsInt();
-        for (int i = 0; i < 30000; ++i) {
-            Rectangle2D rectangle = new Rectangle2D(rng.nextInt(worldWidth), rng.nextInt(worldHeight), 1, 1, 10);
+        for (int i = 0; i < 10000; ++i) {
+            Rectangle2D rectangle = new Rectangle2D(rng.nextInt(worldWidth), rng.nextInt(worldHeight), 100, 100, 10);
             rectangle.setColor(Color.BLUE);
             rectangle.addToWorld();
             rectangle.setSpeedXY(rng.nextDouble() * 100, 0.0);
