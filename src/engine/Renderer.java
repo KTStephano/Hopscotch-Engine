@@ -43,6 +43,8 @@ public class Renderer implements MessageHandler {
         _collision.init();
         _collisionTask = new ArrayList<>();
         _collisionTask.add(_collision);
+        _renderedScene = false;
+        //_updatingEntities = false;
         // Signal interest
         Engine.getMessagePump().signalInterest(Singleton.ADD_GRAPHICS_ENTITY, this);
         Engine.getMessagePump().signalInterest(Singleton.REMOVE_GRAPHICS_ENTITY, this);
@@ -101,7 +103,6 @@ public class Renderer implements MessageHandler {
     private void _render(double deltaSeconds)
     {
         if (_updatingEntities) return; // Not done with collisions/movement simulation
-        System.out.println(deltaSeconds);
         _collision.setDeltaSeconds(deltaSeconds);
         // Clear the screen
         _gc.setFill(Color.WHITE);
