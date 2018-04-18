@@ -19,7 +19,7 @@ public class ExampleApplication implements ApplicationEntryPoint {
         rec.addToWorld();
         Camera camera = new Camera();
         camera.attachToEntity(rec);
-        //camera.setAsMainCamera();
+        camera.setAsMainCamera();
 
         Random rng = new Random();
         int worldWidth = Engine.getConsoleVariables().find(Constants.WORLD_WIDTH).getcvarAsInt();

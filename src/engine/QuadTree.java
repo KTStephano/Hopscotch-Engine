@@ -70,6 +70,7 @@ public class QuadTree<E extends Actor> implements Iterable<E> {
             int widthHeight = width > height ? width : height;
             int edgeX = x + widthHeight;
             int edgeY = y + widthHeight;
+            /**
             boolean insideOtherStartXTest = x >= _startX && x <= _edgeX;
             boolean insideOtherStartYTest = y >= _startY && y <= _edgeY;
             boolean insideOtherEdgeXTest = edgeX >= _startX && edgeX <= _edgeX;
@@ -87,6 +88,9 @@ public class QuadTree<E extends Actor> implements Iterable<E> {
 
                     (insideOtherStartXTest && insideOtherStartYTest) || (insideOtherEdgeXTest && insideOtherStartYTest) ||
                     (insideOtherStartXTest && insideOtherEdgeYTest) || (insideOtherEdgeXTest && insideOtherEdgeYTest);
+             */
+            if ((_startX > edgeX) || (x > _edgeX) || (_startY > edgeY) || (y > _edgeY)) return false;
+            return true;
         }
 
         public void clear() {

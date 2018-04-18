@@ -152,7 +152,7 @@ public class Renderer implements MessageHandler {
         // Reorder scene as needed so things are drawn in the proper order
         //HashSet<GraphicsEntity> actors = _graphicsEntities.getAllActors();
         HashSet<GraphicsEntity> actors = _graphicsEntities.getActorsWithinArea(0, 0, screenWidth, screenHeight);
-        //System.out.println("Before: " + _entities.size() + "; after: " + actors.size());
+        System.out.println("Before: " + _entities.size() + "; after: " + actors.size());
         _determineDrawOrder(actors);
         for (Map.Entry<Integer, ArrayList<GraphicsEntity>> entry : _drawOrder.entrySet())
         {
