@@ -1,6 +1,7 @@
 package application;
 
 import engine.*;
+import javafx.scene.paint.Color;
 
 // lol
 public class ExampleApplication implements ApplicationEntryPoint {
@@ -10,6 +11,10 @@ public class ExampleApplication implements ApplicationEntryPoint {
         new Rectangle2D(10,10,100,100,1).addToWorld();
         new Circle2D(100,100,100, 100, 1).addToWorld();
         new Text2D("test", 200, 200, 100, 55, 1).addToWorld();
+        Rectangle2D rec = new Rectangle2D(10,10,100,100,1);
+        rec.setColor(Color.BLACK);
+        rec.setAccelerationXY(100.0, 0.0);
+        rec.addToWorld();
     }
 
     @Override

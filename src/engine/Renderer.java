@@ -30,11 +30,19 @@ public class Renderer implements MessageHandler {
     private TreeMap<Integer, ArrayList<GraphicsEntity>> _drawOrder = new TreeMap<>();
     private Camera _worldCamera = new Camera(); // Start with a default camera
     private Rotate _rotation = new Rotate(0);
+    private ArrayList<Task> _collisionTask;
+    private CollisionDetection _collision;
+    private volatile boolean _renderedScene = false;
+    private volatile boolean _updatingEntities = false;
 
     public void init(GraphicsContext gc)
     {
         _gc = gc;
         _rotation.setAxis(new Point3D(0, 0, 1)); // In 2D we rotate about the z-axis
+        _collision = new CollisionDetection();
+        _collision.init();
+        _collisionTask = new ArrayList<>();
+        _collisionTask.add(_collision);
         // Signal interest
         Engine.getMessagePump().signalInterest(Singleton.ADD_GRAPHICS_ENTITY, this);
         Engine.getMessagePump().signalInterest(Singleton.REMOVE_GRAPHICS_ENTITY, this);
@@ -53,7 +61,11 @@ public class Renderer implements MessageHandler {
                 _render((Double)message.getMessageData());
                 break;
             case Engine.R_UPDATE_ENTITIES:
-                _updateEntities((Double)message.getMessageData());
+                if (_updatingEntities || !_renderedScene) return; // Already checking for collisions/simulating movement
+                //_updateEntities((Double)message.getMessageData());
+                _updatingEntities = true;
+                _renderedScene = false;
+                Engine.scheduleLogicTasks(_collisionTask, () -> _updatingEntities = false);
                 break;
             case Singleton.ADD_GRAPHICS_ENTITY:
                 _entities.add((GraphicsEntity) message.getMessageData());
@@ -88,6 +100,9 @@ public class Renderer implements MessageHandler {
 
     private void _render(double deltaSeconds)
     {
+        if (_updatingEntities) return; // Not done with collisions/movement simulation
+        System.out.println(deltaSeconds);
+        _collision.setDeltaSeconds(deltaSeconds);
         // Clear the screen
         _gc.setFill(Color.WHITE);
         _gc.fillRect(0, 0,
@@ -152,8 +167,10 @@ public class Renderer implements MessageHandler {
                 }
             }
         }
+        _renderedScene = true;
     }
 
+    /*
     private void _updateEntities(double deltaSeconds)
     {
         _rootSet.clear();
@@ -217,6 +234,7 @@ public class Renderer implements MessageHandler {
                     worldHeight, deltaSpeedX, deltaSpeedY);
         }
     }
+    */
 
     private void _determineDrawOrder()
     {
@@ -238,6 +256,7 @@ public class Renderer implements MessageHandler {
         }
     }
 
+    /*
     // This performs wraparound for an object
     private void _checkAndCorrectOutOfBounds(Actor actor, int worldStartX, int worldStartY,
                                              int worldWidth, int worldHeight)
@@ -253,4 +272,5 @@ public class Renderer implements MessageHandler {
         else if (y > worldHeight) y = worldStartY;
         translation.setXYZ(x, y, 1);
     }
+    */
 }
