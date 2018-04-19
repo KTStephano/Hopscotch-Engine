@@ -222,7 +222,6 @@ public class Window implements MessageHandler, PulseEntity {
             }
             case W_REGISTER_MOUSE_INPUT_COMPONENT:
             {
-                System.out.println("registered");
                 _mouseInputComponents.add((MouseInputComponent)message.getMessageData());
                 break;
             }
