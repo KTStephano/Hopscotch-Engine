@@ -174,6 +174,7 @@ public class Window implements MessageHandler, PulseEntity {
         _jfxScene.setOnMousePressed(_mouseInputManager::mousePressedDown);
         _jfxScene.setOnMouseReleased(_mouseInputManager::mouseReleased);
         _jfxScene.setOnMouseMoved(_mouseInputManager::mouseMoved);
+        _jfxScene.setOnMouseDragged(_mouseInputManager::mouseMoved);
         stage.setScene(_jfxScene);
         stage.show();
         _gc = _canvas.getGraphicsContext2D();
