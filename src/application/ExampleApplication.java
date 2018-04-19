@@ -50,7 +50,7 @@ public class ExampleApplication implements ApplicationEntryPoint {
         Camera camera = new Camera();
         camera.attachToEntity(rec);
         new CameraController().enableMouseInputComponent();
-        //camera.setAsMainCamera();
+        camera.setAsMainCamera();
 
         Random rng = new Random();
         int worldWidth = Engine.getConsoleVariables().find(Constants.WORLD_WIDTH).getcvarAsInt();
