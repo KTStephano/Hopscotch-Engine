@@ -12,14 +12,15 @@ public class PhysicsSimulation implements Task, MessageHandler {
     private HashSet<ActorGraph> _rootSet;
     private QuadTree<ActorGraph> _actorTree;
     private AtomicReference<Double> _deltaSeconds = new AtomicReference<>(0.0);
-    private HashMap<Actor, HashSet<Actor>> _collisions;
+    private ConcurrentHashMap<Actor, HashSet<Actor>> _collisions;
 
     public void init() {
         Engine.getMessagePump().signalInterest(Constants.ADD_GRAPHICS_ENTITY, this);
         Engine.getMessagePump().signalInterest(Constants.REMOVE_GRAPHICS_ENTITY, this);
+        Engine.getMessagePump().signalInterest(Constants.CONSOLE_VARIABLE_CHANGED, this);
         _actors = new ConcurrentHashMap<>();
         _rootSet = new HashSet<>();
-        _collisions = new HashMap<>(100);
+        _collisions = new ConcurrentHashMap<>(100);
         int worldStartX = Engine.getConsoleVariables().find(Constants.WORLD_START_X).getcvarAsInt();
         int worldStartY = Engine.getConsoleVariables().find(Constants.WORLD_START_Y).getcvarAsInt();
         int worldWidth = Engine.getConsoleVariables().find(Constants.WORLD_WIDTH).getcvarAsInt();
@@ -33,7 +34,7 @@ public class PhysicsSimulation implements Task, MessageHandler {
     }
 
     // Returns the collisions that resulted during the previous physics simulation update
-    public HashMap<Actor, HashSet<Actor>> getPreviousCollisions() {
+    public ConcurrentHashMap<Actor, HashSet<Actor>> getPreviousCollisions() {
         return _collisions;
     }
 
@@ -49,6 +50,7 @@ public class PhysicsSimulation implements Task, MessageHandler {
             case Constants.ADD_GRAPHICS_ENTITY:
             {
                 _actors.putIfAbsent((ActorGraph)message.getMessageData(), _obj);
+                _collisions.putIfAbsent((ActorGraph)message.getMessageData(), new HashSet<>(25));
                 break;
             }
             case Constants.REMOVE_GRAPHICS_ENTITY:
@@ -56,7 +58,21 @@ public class PhysicsSimulation implements Task, MessageHandler {
                 Object obj = message.getMessageData();
                 if (obj == null) return;
                 _actors.remove(obj);
+                _collisions.remove(obj);
                 break;
+            }
+            case Constants.CONSOLE_VARIABLE_CHANGED:
+            {
+                ConsoleVariable var = (ConsoleVariable)message.getMessageData();
+                int worldX = Engine.getConsoleVariables().find(Constants.WORLD_START_X).getcvarAsInt();
+                int worldY = Engine.getConsoleVariables().find(Constants.WORLD_START_Y).getcvarAsInt();
+                int worldWidth = Engine.getConsoleVariables().find(Constants.WORLD_WIDTH).getcvarAsInt();
+                int worldHeight = Engine.getConsoleVariables().find(Constants.WORLD_HEIGHT).getcvarAsInt();
+                if (var.getcvarName().equals(Constants.WORLD_WIDTH) || var.getcvarName().equals(Constants.WORLD_HEIGHT)
+                        || var.getcvarName().equals(Constants.WORLD_START_X) || var.getcvarName().equals(Constants.WORLD_START_Y)) {
+                    _actorTree = new QuadTree<>(worldX, worldY, worldWidth > worldHeight ? worldWidth : worldHeight,
+                            10, 100);
+                }
             }
         }
     }
@@ -96,9 +112,9 @@ public class PhysicsSimulation implements Task, MessageHandler {
             _checkAndCorrectOutOfBounds(graph, worldStartX, worldStartY, worldWidth, worldHeight);
             _rootSet.add(graph);
             _actorTree.add(graph);
-            for (ActorGraph attached : graph.getActors())
+            for (Map.Entry<ActorGraph, Object> attached : graph.getActors().entrySet())
             {
-                _updateGraphEntitiesRecursive(attached, worldStartX, worldStartY, worldWidth,
+                _updateGraphEntitiesRecursive(attached.getKey(), worldStartX, worldStartY, worldWidth,
                         worldHeight, deltaSpeedX, deltaSpeedY);
             }
         }
@@ -112,7 +128,7 @@ public class PhysicsSimulation implements Task, MessageHandler {
     {
         // Only process this actor if it is part of the world
         // and has not been processed yet
-        if (_actors.contains(actor) && !_rootSet.contains(actor))
+        if (_actors.containsKey(actor) && !_rootSet.contains(actor))
         {
             actor.setLocationXYDepth(actor.getLocationX() + deltaSpeedX * (actor.shouldConstrainXMovement() ? 0 : 1),
                     actor.getLocationY() + deltaSpeedY * (actor.shouldConstrainYMovement() ? 0 : 1),
@@ -122,9 +138,9 @@ public class PhysicsSimulation implements Task, MessageHandler {
         }
         _rootSet.add(actor);
         // Process its attached actors regardless
-        for (ActorGraph attached : actor.getActors())
+        for (Map.Entry<ActorGraph, Object> attached : actor.getActors().entrySet())
         {
-            _updateGraphEntitiesRecursive(attached, worldStartX, worldStartY, worldWidth,
+            _updateGraphEntitiesRecursive(attached.getKey(), worldStartX, worldStartY, worldWidth,
                     worldHeight, deltaSpeedX, deltaSpeedY);
         }
     }
@@ -153,18 +169,12 @@ public class PhysicsSimulation implements Task, MessageHandler {
             HashSet<ActorGraph> set = iterator.next();
             for (ActorGraph outer : set) {
                 HashSet<Actor> outerCollisions = _collisions.get(outer);
-                if (outerCollisions == null) {
-                    outerCollisions = new HashSet<>();
-                    _collisions.put(outer, outerCollisions);
-                }
+                if (outerCollisions == null) continue;
                 double depth = outer.getDepth();
                 for (ActorGraph inner : set) {
                     if (outer == inner || depth != inner.getDepth()) continue;
                     HashSet<Actor> innerCollisions = _collisions.get(inner);
-                    if (innerCollisions == null) {
-                        innerCollisions = new HashSet<>();
-                        _collisions.put(inner, innerCollisions);
-                    }
+                    if (innerCollisions == null) continue;
                     if (_collided(outer, inner)) {
                         outerCollisions.add(inner);
                         innerCollisions.add(outer);
