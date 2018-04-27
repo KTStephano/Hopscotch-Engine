@@ -66,10 +66,16 @@ public class ExampleApplication implements ApplicationEntryPoint {
             {
                 Engine.getMessagePump().sendMessage(new Message(Constants.ADD_PULSE_ENTITY, this));
             }
+            double elapsed = 0;
 
             @Override
             public void pulse(double deltaSeconds) {
                 //System.out.println(deltaSeconds);
+                elapsed += deltaSeconds;
+                if (elapsed >= 5) {
+                    Engine.getMessagePump().sendMessage(new Message(Constants.PERFORM_SOFT_RESET));
+                    elapsed = 0;
+                }
             }
         };
     }
