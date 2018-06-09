@@ -22,15 +22,13 @@ class SquareTest extends RenderEntity {
     }
 }
 
+/**
+ * Adds 10 SquareTest objects to the world and then removes itself from the engine
+ */
 class Logic implements LogicEntity {
     private int num = 10;
-    private long ms = System.currentTimeMillis();
     @Override
     public void process(double deltaSeconds) {
-        long newMs = System.currentTimeMillis();
-        //deltaSeconds = (newMs - ms) / 1000.0;
-        System.out.println(deltaSeconds);
-        ms = newMs;
         if (num == 0) {
             Engine.getMessagePump().sendMessage(new Message(Constants.REMOVE_LOGIC_ENTITY, this));
             return;
@@ -41,8 +39,10 @@ class Logic implements LogicEntity {
     }
 }
 
-// lol
-public class ExampleApp implements ApplicationEntryPoint{
+/**
+ * Spawns 100 Logic Entities (virtual threads)
+ */
+public class MultipleThreadsApplication implements ApplicationEntryPoint{
     @Override
     public void init() {
         System.out.println("Initialized");
@@ -58,7 +58,7 @@ public class ExampleApp implements ApplicationEntryPoint{
     }
 
     public static void main(String[] args) {
-        ApplicationEntryPoint app = new ExampleApp();
+        ApplicationEntryPoint app = new MultipleThreadsApplication();
         EngineLoop.start(app, args);
     }
 }
