@@ -2,12 +2,12 @@
 A simple Java engine for creating 2D game worlds.
 
 ## Where does the name come from?
-The name has to do with the nature of development for this engine which jumped from project to project rather than being developed in isolation. Each project had very different requirements and so the engine had to be adapted to meet them. This jumping from project to project and requirement set to requirement set is where the name "Hopscotch Engine" ultimately comes from.
+The name has to do with the nature of development for this engine which jumped around to different projects rather than developed in isolation. Each project had very different requirements and so the engine had to be adapted to meet them. This jumping from project to project and requirement set to requirement set is where the name "Hopscotch Engine" ultimately comes from.
 
 ## Helping support development
-Development on this engine will likely continue, and if you are interested in helping to extend it then send an email to ktstephano@gmail.com.
+Development will likely continue down the line and if you are interested in helping to extend it then send an email to ktstephano@gmail.com.
 
-Things I am interested in adding:
+Things I am interested in adding (just as a rough path forward):
 * Full OpenGL renderer to replace the JavaFX backend
 * Rewritten GUI system since the current is dependent on JavaFX
 * Better physics engine that also supports collision response
