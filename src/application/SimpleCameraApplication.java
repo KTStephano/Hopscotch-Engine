@@ -30,7 +30,7 @@ public class SimpleCameraApplication implements ApplicationEntryPoint {
 
         @Override
         public void scrolled(double direction) {
-            
+
         }
 
         @Override
