@@ -76,5 +76,6 @@ public class SimpleCameraApplication implements ApplicationEntryPoint {
     public static void main(String[] args) {
         SimpleCameraApplication app = new SimpleCameraApplication();
         EngineLoop.start(app, args);
+        EngineLoop.exit(); // Make sure to call this or shutdown will hang!
     }
 }

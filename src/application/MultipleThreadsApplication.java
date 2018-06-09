@@ -60,5 +60,6 @@ public class MultipleThreadsApplication implements ApplicationEntryPoint{
     public static void main(String[] args) {
         ApplicationEntryPoint app = new MultipleThreadsApplication();
         EngineLoop.start(app, args);
+        EngineLoop.exit(); // Make sure to call this or shutdown will hang!
     }
 }
