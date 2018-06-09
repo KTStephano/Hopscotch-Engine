@@ -8,6 +8,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -37,15 +38,19 @@ public class Window implements MessageHandler, PulseEntity {
     private HashSet<MouseInputComponent> _mouseInputComponents;
     private InternalMouseInputManager _mouseInputManager;
     private volatile boolean _headless;
+    private volatile boolean _captureMouseMove;
+    private volatile boolean _captureMouseScroll;
 
     private class MouseSnapshot {
         boolean moved = false;
         boolean pressedDown = false;
         boolean released = false;
+        boolean scrolled = false;
         double x = 0.0;
         double y = 0.0;
         double movedX = 0.0;
         double movedY = 0.0;
+        double scrollDirection = 0.0;
         MouseButtonTypes button;
     }
 
@@ -72,6 +77,12 @@ public class Window implements MessageHandler, PulseEntity {
         void mouseMoved(MouseEvent event) {
             swap(event.getX(), event.getY());
             _snapshot.moved = true;
+        }
+
+        void scrolled(ScrollEvent event) {
+            double amount = event.getDeltaY();
+            _snapshot.scrollDirection = amount < 0 ? -1 : 1;
+            _snapshot.scrolled = true;
         }
 
         MouseSnapshot snapshot() {
@@ -138,6 +149,8 @@ public class Window implements MessageHandler, PulseEntity {
         _title = cvars.find(Constants.SCR_TITLE).getcvarValue();
         _mouseInputComponents = new HashSet<>();
         _mouseInputManager = new InternalMouseInputManager();
+        _captureMouseMove = Engine.getConsoleVariables().find(Constants.ALLOW_MOUSE_MOVE).getcvarAsBool();
+        _captureMouseScroll = Engine.getConsoleVariables().find(Constants.ALLOW_MOUSE_SCROLL).getcvarAsBool();
 
         // Register window-specific messages
         Engine.getMessagePump().registerMessage(new Message(W_REGISTER_MOUSE_INPUT_COMPONENT));
@@ -180,10 +193,15 @@ public class Window implements MessageHandler, PulseEntity {
         _jfxScene.setOnMouseReleased(_mouseInputManager::mouseReleased);
         _jfxScene.setOnMouseMoved(_mouseInputManager::mouseMoved);
         _jfxScene.setOnMouseDragged(_mouseInputManager::mouseMoved);
+        _jfxScene.setOnScroll(_mouseInputManager::scrolled);
         stage.setScene(_jfxScene);
         stage.show();
         _gc = _canvas.getGraphicsContext2D();
         return _gc;
+    }
+
+    public void shutdown() {
+        if (_stage != null) _stage.close();
     }
 
     @Override
@@ -208,6 +226,12 @@ public class Window implements MessageHandler, PulseEntity {
                 else if (cvar.getcvarName().equals(Constants.SCR_RESIZEABLE))
                 {
                     _stage.setResizable(true);
+                }
+                else if (cvar.getcvarName().equals(Constants.ALLOW_MOUSE_MOVE)) {
+                    _captureMouseMove = cvar.getcvarAsBool();
+                }
+                else if (cvar.getcvarName().equals(Constants.ALLOW_MOUSE_SCROLL)) {
+                    _captureMouseScroll = cvar.getcvarAsBool();
                 }
                 break;
             }
@@ -252,7 +276,8 @@ public class Window implements MessageHandler, PulseEntity {
         for (MouseInputComponent component : _mouseInputComponents) {
             if (snapshot.pressedDown) component.mousePressedDown(snapshot.x, snapshot.y, snapshot.button);
             if (snapshot.released) component.mouseReleased(snapshot.x, snapshot.y, snapshot.button);
-            if (snapshot.moved) component.mouseMoved(snapshot.movedX, snapshot.movedY, snapshot.x, snapshot.y);
+            if (snapshot.moved && _captureMouseMove) component.mouseMoved(snapshot.movedX, snapshot.movedY, snapshot.x, snapshot.y);
+            if (snapshot.scrolled && _captureMouseScroll) component.scrolled(snapshot.scrollDirection);
         }
     }
 }

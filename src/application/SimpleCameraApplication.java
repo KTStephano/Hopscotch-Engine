@@ -6,7 +6,6 @@ import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import java.util.Random;
 
-// lol
 public class SimpleCameraApplication implements ApplicationEntryPoint {
     private class CameraController extends MouseInputComponent {
         boolean pressedDown = false;
@@ -27,6 +26,11 @@ public class SimpleCameraApplication implements ApplicationEntryPoint {
                 Engine.getMessagePump().sendMessage(new Message(Constants.INCREMENT_CAMERA_X_OFFSET, amountX*5));
                 Engine.getMessagePump().sendMessage(new Message(Constants.INCREMENT_CAMERA_Y_OFFSET, amountY*5));
             }
+        }
+
+        @Override
+        public void scrolled(double direction) {
+            
         }
 
         @Override

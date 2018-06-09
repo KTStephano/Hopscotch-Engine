@@ -6,12 +6,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Handles all entity movement as well as collision detection. Currently,
- * although it can detect collisions, it does not provide collision response.
- *
- * @author Justin Hall
- */
 public class PhysicsSimulation implements Task, MessageHandler {
     private static final Object _obj = new Object();
     private ConcurrentHashMap<ActorGraph, Object> _actors;

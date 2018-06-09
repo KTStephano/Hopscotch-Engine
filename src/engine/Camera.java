@@ -1,6 +1,7 @@
 package engine;
 
 import engine.math.Vector3;
+import javafx.util.Pair;
 
 /**
  * Represents a virtual camera which can be attached
@@ -20,8 +21,8 @@ public class Camera {
     private Actor _attachedTo;
     private Vector3 _worldTranslate = new Vector3(0.0);
     private Vector3 _editedEntityLocation = new Vector3(0.0);
-    private double _widthScalar = 2.5;
-    private double _heightScalar = 3.0;
+    private double _widthScalar = 2;//2.5;
+    private double _heightScalar = 2;//3.0;
     private double _manualOffsetX = 0.0; // In case something like the mouse is controlling this
     private double _manualOffsetY = 0.0; // In case something like the mouse is controlling this
 
@@ -52,6 +53,18 @@ public class Camera {
     public void setManualOffsetXY(double xAmount, double yAmount) {
         _manualOffsetX = xAmount;
         _manualOffsetY = yAmount;
+    }
+
+    public double getManualOffsetX() {
+        return _manualOffsetX;
+    }
+
+    public double getManualOffsetY() {
+        return _manualOffsetY;
+    }
+
+    public Pair<Double, Double> getManualOffsetXY() {
+        return new Pair<>(getManualOffsetX(), getManualOffsetY());
     }
 
     /**
@@ -111,8 +124,10 @@ public class Camera {
         //double modLocY = locY;// < 0 ? -locY : locY;
         double newLocX = locX - scrWidthModified - _manualOffsetX;
         double newLocY = locY - scrHeightModified - _manualOffsetY;
-        if (newLocX > (worldEndX - scrWidth)) newLocX = worldEndX - scrWidth;
-        else if (newLocX < worldStartX) newLocX = worldStartX;
+
+        //if (newLocX > (worldEndX - scrWidth)) newLocX = worldEndX - scrWidth;
+        //else if (newLocX < worldStartX) newLocX = worldStartX;
+
         //if (newLocY > (worldStartY - scrHeight)) newLocY = worldStartY - scrHeight;
         //else if (newLocY < worldStartY) newLocY = worldStartY;
         newLocX *= -1;

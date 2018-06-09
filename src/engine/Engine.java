@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Justin Hall
  */
 public class Engine implements PulseEntity, MessageHandler {
-    private static Engine _engine; // Self-reference
+    private static volatile Engine _engine; // Self-reference
     private static volatile boolean _isInitialized = false;
     // Package private
     static final String R_RENDER_SCENE = "r_render_screen";
@@ -54,8 +54,10 @@ public class Engine implements PulseEntity, MessageHandler {
     private Renderer _renderer;
     private ConcurrentHashMap<TaskManager.Counter, Callback> _taskCallbackMap = new ConcurrentHashMap<>();
     private ConcurrentHashMap<LogicEntity, LogicEntityTask> _registeredLogicEntities = new ConcurrentHashMap<>();
+    private Filesystem _fileSys;
     private volatile int _maxFrameRate;
     private final int _maxMessageQueueProcessingRate = 240; // Measures in Hertz, i.e. times per second
+    private double _timeScalingFactor = 1.0;
     private volatile long _lastMessageQueueFrameTimeMS;
     private volatile long _lastFrameTimeMS;
     private volatile boolean _isRunning = false;
@@ -63,6 +65,7 @@ public class Engine implements PulseEntity, MessageHandler {
     private volatile boolean _requiresRestart = false;
     private volatile boolean _headless = false;
     private volatile boolean _initializing = false;
+    private volatile boolean _pendingShutdown = false;
     private Runnable _gameLoop;
 
     // Wrapper around each logic entity
@@ -88,7 +91,7 @@ public class Engine implements PulseEntity, MessageHandler {
             double deltaSeconds = elapsedNSec / 1000000000.0;
             _startTimeNSec = currTimeNSec;
             try {
-                _entity.process(deltaSeconds);
+                _entity.process(deltaSeconds * _timeScalingFactor);
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -124,6 +127,13 @@ public class Engine implements PulseEntity, MessageHandler {
     }
 
     /**
+     * Returns the engine's file system for opening and manipulating files.
+     */
+    public static Filesystem getFileSystem() {
+        return _engine._fileSys;
+    }
+
+    /**
      * WARNING: Do not interface with JavaFX from a task on a logic thread. This is almost
      * guaranteed to cause JavaFX to throw an exception.
      *
@@ -146,17 +156,19 @@ public class Engine implements PulseEntity, MessageHandler {
             _gameLoop = new Runnable() {
                 @Override
                 public void run() {
-                    if (!_isRunning) {
-                        shutdown(); //System.exit(0); // Need to shut the system down
+                    if (!_isRunning) return;
+                    else if (_pendingShutdown) { // Need to shut the system down
+                        shutdown();
                         return;
                     }
                     try {
                         if (_initializing) return; // Engine is not ready to run
                         long currentTimeMS = System.currentTimeMillis();
                         double deltaSeconds = (currentTimeMS - _lastFrameTimeMS) / 1000.0;
+                        _timeScalingFactor = Engine.getConsoleVariables().find(Constants.TIME_SCALING_FACTOR).getcvarAsFloat();
                         // Don't pulse faster than the maximum refresh rate
                         if (deltaSeconds >= (1.0 / _maxFrameRate)) {
-                            pulse(deltaSeconds);
+                            pulse(deltaSeconds * _timeScalingFactor);
                             _lastFrameTimeMS = currentTimeMS;
                         }
                         // Message processing happens at a very fast rate, i.e. 240 times per second
@@ -276,6 +288,11 @@ public class Engine implements PulseEntity, MessageHandler {
                 _registeredLogicEntities.remove(entity);
                 break;
             }
+            case Constants.PERFORM_FULL_ENGINE_SHUTDOWN:
+            {
+                _pendingShutdown = true; // Signals to the game loop that it should call shutdown and stop
+                break;
+            }
         }
     }
 
@@ -283,12 +300,39 @@ public class Engine implements PulseEntity, MessageHandler {
     {
         synchronized(this) {
             if (!_isRunning) return; // Not currently running
+            _pendingShutdown = true; // Make sure this is set
+            System.err.println("Performing full engine shutdown");
             _isRunning = false;
+            _taskCallbackMap.clear();
             _registeredLogicEntities.clear();
             _application.shutdown();
+            _window.shutdown();
             _taskManager.get().stop();
+            _initialStage = null;
             _isInitialized = false;
+            _pulseEntities = null;
+            _application = null;
+            _messageSystem.set(null);
+            _cvarSystem.set(null);
+            _taskManager.set(null);
+            _window = null;
+            _renderer = null;
+            _fileSys.shutdown();
+            _fileSys = null;
+            _updateEntities = true; // If false, nothing is allowed to move
+            _requiresRestart = false;
+            _headless = false;
+            _initializing = false;
+            _pendingShutdown = false; // Now unset
         }
+    }
+
+    public boolean isEngineRunning() {
+        return _isRunning;
+    }
+
+    public boolean isShuttingDown() {
+        return _pendingShutdown;
     }
 
     // Performs memory allocation of core submodules so that
@@ -297,6 +341,7 @@ public class Engine implements PulseEntity, MessageHandler {
     {
         synchronized(this) {
             if (_isInitialized) return; // Already initialized
+            System.out.println("Engine -> Pre-Initialize Stage");
             _isInitialized = true;
             _engine = this; // This is a static variable
             _cvarSystem.set(new ConsoleVariables());
@@ -305,6 +350,7 @@ public class Engine implements PulseEntity, MessageHandler {
             //_taskManager = new TaskManager();
             _window = new Window();
             _renderer = new Renderer();
+            _fileSys = new Filesystem();
             _isRunning = true;
         }
     }
@@ -317,16 +363,13 @@ public class Engine implements PulseEntity, MessageHandler {
         }
     }
 
-    // Package private
-    boolean _isEngineRunning() {
-        return _isRunning;
-    }
-
     // Performs minimal allocations but initializes all submodules in the
     // correct order
     private void _init()
     {
         synchronized(this) {
+            System.out.println("Engine -> Initialize Stage");
+            _fileSys.init(); // Make sure this gets initialized first
             getConsoleVariables().loadConfigFile("src/resources/engine.cfg");
             _registerDefaultCVars();
             _maxFrameRate = Math.abs(Engine.getConsoleVariables().find(Constants.ENG_LIMIT_FPS).getcvarAsInt());
@@ -343,6 +386,7 @@ public class Engine implements PulseEntity, MessageHandler {
             getMessagePump().signalInterest(Constants.PERFORM_SOFT_RESET, this);
             getMessagePump().signalInterest(Constants.ADD_LOGIC_ENTITY, this);
             getMessagePump().signalInterest(Constants.REMOVE_LOGIC_ENTITY, this);
+            getMessagePump().signalInterest(Constants.PERFORM_FULL_ENGINE_SHUTDOWN, this);
             if (_taskManager.get() != null) {
                 _taskManager.get().stop();
             }
@@ -355,11 +399,12 @@ public class Engine implements PulseEntity, MessageHandler {
             if (!_headless) {
                 _initializing = true; // Let's the main game loop know to spin while delayed initialization takes place
                 new JFXPanel(); // This forces JavaFX to initialize itself
+                Platform.setImplicitExit(false); // Prevents JFX from killing itself after all threads are closed
                 _dispatchEngineLogic(() -> {
                     if (_initialStage != null) _initialStage.close();
                     _initialStage = new Stage();
                     _initialStage.show();
-                    _initialStage.setOnCloseRequest((value) -> shutdown());
+                    _initialStage.setOnCloseRequest((value) -> _pendingShutdown = true);
                     GraphicsContext gc = _window.init(_initialStage);
                     _renderer.init(gc);
                     _application.init();
@@ -398,7 +443,8 @@ public class Engine implements PulseEntity, MessageHandler {
             //_messageSystem.set(new MessagePump());
             getMessagePump().clearAllMessageHandlers();
             _application.shutdown();
-            _init();
+            _fileSys.shutdown();
+            //_init();
         }
     }
 
@@ -413,6 +459,9 @@ public class Engine implements PulseEntity, MessageHandler {
         getConsoleVariables().registerVariable(new ConsoleVariable(Constants.CALCULATE_MOVEMENT, "true", "true"));
         getConsoleVariables().registerVariable(new ConsoleVariable(Constants.NUM_LOGIC_THREADS, "2", "2"));
         getConsoleVariables().registerVariable(new ConsoleVariable(Constants.HEADLESS, "false", "false"));
+        getConsoleVariables().registerVariable(new ConsoleVariable(Constants.ALLOW_MOUSE_MOVE, "true", "true"));
+        getConsoleVariables().registerVariable(new ConsoleVariable(Constants.ALLOW_MOUSE_SCROLL, "true", "true"));
+        getConsoleVariables().registerVariable(new ConsoleVariable(Constants.TIME_SCALING_FACTOR, "1.0", "1.0"));
     }
 
     private void _registerMessageTypes()
@@ -440,6 +489,12 @@ public class Engine implements PulseEntity, MessageHandler {
         getMessagePump().registerMessage(new Message(Constants.INCREMENT_CAMERA_X_OFFSET));
         getMessagePump().registerMessage(new Message(Constants.INCREMENT_CAMERA_Y_OFFSET));
         getMessagePump().registerMessage(new Message(Constants.RESET_CAMERA_XY_OFFSET));
+        getMessagePump().registerMessage(new Message(Constants.PERFORM_FULL_ENGINE_SHUTDOWN));
+        getMessagePump().registerMessage(new Message(Constants.SET_CAMERA_ZOOM));
+        getMessagePump().registerMessage(new Message(Constants.CAMERA_OFFSET_CHANGED));
+        getMessagePump().registerMessage(new Message(Constants.CAMERA_ZOOM_CHANGED));
+        getMessagePump().registerMessage(new Message(Constants.SET_CAMERA_X_OFFSET));
+        getMessagePump().registerMessage(new Message(Constants.SET_CAMERA_Y_OFFSET));
     }
 
     /**
