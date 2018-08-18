@@ -60,7 +60,7 @@ public class SimpleCameraApplication implements ApplicationEntryPoint {
         int worldWidth = Engine.getConsoleVariables().find(Constants.WORLD_WIDTH).getcvarAsInt();
         int worldHeight = Engine.getConsoleVariables().find(Constants.WORLD_HEIGHT).getcvarAsInt();
         // Add 3500 moving rectangles to the world
-        for (int i = 0; i < 3500; ++i) {
+        for (int i = 0; i < 1000; ++i) {
             Rectangle2D rectangle = new Rectangle2D(rng.nextInt(worldWidth), rng.nextInt(worldHeight), 2, 2, 1);
             rectangle.setColor(Color.BLUE);
             rectangle.addToWorld();
