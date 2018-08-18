@@ -35,7 +35,7 @@ public class SimpleCameraApplication implements ApplicationEntryPoint {
 
         @Override
         public void processMouseCollisionResponse(ArrayList<Actor> actors) {
-
+            System.out.println("CALLED\n");
         }
     }
 
