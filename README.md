@@ -5,9 +5,6 @@ A simple Java engine for creating 2D game worlds.
 * Java 8 or 9
 * JavaFX 8 or 9
 
-## Where does the name come from?
-The name has to do with the nature of development for this engine which jumped around to different projects rather than developed in isolation. Each project had very different requirements and so the engine had to be adapted to meet them. This jumping from project to project and requirement set to requirement set is where the name "Hopscotch Engine" ultimately comes from.
-
 ## Helping support development
 Development will likely continue down the line and if you are interested in helping to extend it then send an email to ktstephano@gmail.com.
 
